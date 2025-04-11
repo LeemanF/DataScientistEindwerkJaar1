@@ -3,3 +3,8 @@ WindForecast (oud): https://www.elia.be/nl/grid-data/productie/windenergieproduc
 WindForecast: https://www.elia.be/nl/grid-data/productie-gegevens/windenergieproductie
 Aardolieprijzen: https://statbel.fgov.be/nl/themas/energie/aardolieprijzen
 Belpex: https://my.elexys.be/MarketInformation/SpotBelpex.aspx
+
+
+
+API:
+https://opendata.elia.be/explore/dataset/ods032/download?format=json
