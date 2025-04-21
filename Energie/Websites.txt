@@ -6,5 +6,6 @@ Belpex: https://my.elexys.be/MarketInformation/SpotBelpex.aspx
 
 
 
-API:
-https://opendata.elia.be/explore/dataset/ods032/download?format=json
+https://opendata.elia.be/explore/dataset/ods032/api/  => Solar
+https://opendata.elia.be/explore/dataset/ods031/api/  => Wind
+https://my.elexys.be/MarketInformation/SpotBelpex.aspx
