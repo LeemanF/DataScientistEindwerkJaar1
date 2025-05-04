@@ -3,3 +3,4 @@ Data/WindForecast/**/*.json
 Data/SolarForecast/**/*.json
 Energie/
 Test/
+__pycache__/

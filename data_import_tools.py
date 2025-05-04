@@ -414,14 +414,15 @@ def update_data(from_year=None, to_year=None, data_type='all'):
         to_year = today.year
 
     # Bepalen tot welke maand er data beschikbaar is. Pas vanaf de 4de dag is de info van de vorige maand beschikbaar.
-    if today.day < 4:
+    if today.day <= 4:
         latest_available_month = today.month - 2
     else:
         latest_available_month = today.month - 1
 
+    latest_available_year = today.year
     if latest_available_month <= 0:
         latest_available_month += 12
-        to_year -= 1
+        latest_available_year -= 1
 
     allowed_types = {'wind', 'solar', 'belpex', 'all'}
     if data_type not in allowed_types:
@@ -434,9 +435,10 @@ def update_data(from_year=None, to_year=None, data_type='all'):
 
     # Loop over jaren en maanden
     print(f"📅 Start met ophalen data voor periode {from_year}-{to_year}")
+    counter = 0
     for year in range(from_year, to_year + 1):
         for month in range(1, 13):
-            if (year == today.year and month > latest_available_month) or (year > to_year):
+            if (year == latest_available_year and month > latest_available_month) or (year > latest_available_year):
                 continue
 
             print(f"   📅 Ophalen data voor {year}-{month:02d} ({data_type})")
@@ -444,20 +446,25 @@ def update_data(from_year=None, to_year=None, data_type='all'):
             if data_type in ('wind', 'all'):
                 try:
                     import_wind(year, month)
+                    counter += 1
                 except Exception as e:
                     print(f"❌ Fout bij ophalen winddata {year}-{month:02d}: {e}")
 
             if data_type in ('solar', 'all'):
                 try:
                     import_solar(year, month)
+                    counter += 1
                 except Exception as e:
                     print(f"❌ Fout bij ophalen zonndata {year}-{month:02d}: {e}")
 
             if data_type in ('belpex', 'all'):
                 try:
                     import_belpex(year, month)
+                    counter += 1
                 except Exception as e:
                     print(f"❌ Fout bij ophalen Belpex-data {year}-{month:02d}: {e}")
+    if counter == 0:
+        print("   ❌ Geen data beschikbaar.")
 
     # Alleen als 'wind' of 'solar' werd geüpdatet: zip de forecast-data
     if data_type in ('wind', 'solar', 'all'):
