@@ -1,6 +1,8 @@
 # Negeer alle JSON-bestanden in submappen van WindForecast en SolarForecast
 Data/WindForecast/**/*.json
 Data/SolarForecast/**/*.json
+Database/
 Energie/
 Test/
+Tools/
 __pycache__/

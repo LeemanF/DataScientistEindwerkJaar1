@@ -24,7 +24,12 @@ import subprocess
 # ----------- Automatische installatie van modules -----------
 
 def install_if_missing(package_name):
-    """Installeer een ontbrekende Python-module via pip."""
+    """
+    Controleert of een Python-module is geïnstalleerd en installeert deze indien nodig via pip.
+
+    Parameters:
+    package_name (str): De naam van de te installeren module.
+    """
     try:
         __import__(package_name)
     except ImportError:
