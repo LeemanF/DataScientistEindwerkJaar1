@@ -229,7 +229,7 @@ def process_directory(path, model, batch_size=1000):
 
         batch = []
 
-        for filepath in tqdm(all_files, desc=f"Verwerken van {os.path.basename(path)} voor het jaar {year_dir}"):
+        for filepath in tqdm(all_files, desc=f"Verwerken van {model.__name__} van het jaar {year_dir}"):
             try:
                 with open(filepath, 'r', encoding='utf-8') as f:
                     records = json.load(f)
@@ -256,7 +256,7 @@ def process_directory(path, model, batch_size=1000):
         if inserted_records > 0:
             print(f"✅ {inserted_records} van {total_records} records van het jaar {year_dir} succesvol toegevoegd aan {model.__tablename__} (duplicaten genegeerd).")
         else:
-            print(f"✅ Jaar {year_dir} van {model.__tablename__} is up to date.")
+            print(f"✅ Jaar {year_dir} van {model.__name__} is bijgewerkt in de database.")
  
 def process_belpex_directory(path, batch_size=1000):
     """
@@ -271,7 +271,7 @@ def process_belpex_directory(path, batch_size=1000):
     total_records = 0
     batch = []
 
-    for filepath in tqdm(all_files, desc="Belpex-data verwerken"):
+    for filepath in tqdm(all_files, desc="Verwerken van Belpex-data"):
         with open(filepath, encoding='iso-8859-1') as csvfile:
             reader = csv.DictReader(csvfile, delimiter=';')
             for row in reader:
@@ -306,7 +306,7 @@ def process_belpex_directory(path, batch_size=1000):
     if inserted_records > 0:
         print(f"✅ {inserted_records} van {total_records} Belpex-records toegevoegd (duplicaten genegeerd).")
     else:
-        print(f"✅ Belpexprijzen zijn up to date.")
+        print(f"✅ Belpexprijzen zijn bijgewerkt in de database.")
 
 def to_sql(data_type="all"):
     """
