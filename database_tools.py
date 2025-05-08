@@ -1,3 +1,16 @@
+"""
+Database Tools voor Elia Open Data & Belpex Market Data.
+
+Functies:
+- Automatische installatie van vereiste Python-modules.
+- Definitie van SQLAlchemy-modellen voor zonne-energie, windenergie en Belpex-prijzen.
+- Batchgewijs importeren van JSON- en CSV-data naar een SQLite-database.
+- Automatische parsing en verrijking van datetime-informatie.
+- Selectief verwerken van datasets via het `to_sql()`-commando.
+"""
+
+# ----------- Imports -----------
+
 import os
 import json
 import subprocess
@@ -32,7 +45,8 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, 
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
-# Database setup
+# Database setup:
+# Initialisatie van de SQLite-engine en sessie, met automatische creatie van tabellen op basis van gedefinieerde modellen.
 Base = declarative_base()
 DB_PATH = os.path.join(os.path.dirname(__file__), "Database", "energie_data.sqlite")
 os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -189,51 +203,6 @@ def insert_batch(batch, model):
         session.commit()
         return inserted
 
-def process_directory_V1(path, model, batch_size=1000):
-    """
-    Doorloopt een directory met JSON-bestanden en voegt records toe aan de database.
-
-    Parameters:
-    path (str): Pad naar de directory met .json-bestanden.
-    model (Base): SQLAlchemy-model waarin de records moeten worden opgeslagen.
-    batch_size (int): Aantal records per batch-insert (default = 1000).
-    """
-    all_files = []
-    for root, _, files in os.walk(path):
-        for f in files:
-            if f.endswith(".json"):
-                all_files.append(os.path.join(root, f))
-
-    inserted_records = 0
-    total_records = 0
-    batch = []
-
-    for filepath in tqdm(all_files, desc=f"Verwerken van {os.path.basename(path)}"):
-        try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                records = json.load(f)
-                if isinstance(records, dict):
-                    records = [records]
-        except Exception as e:
-            print(f"⚠️ Fout bij laden van bestand {filepath}: {e}")
-            continue
-
-        for record in records:
-            total_records += 1
-            parsed = parse_record(record)
-            if parsed is None:
-                continue
-            batch.append(parsed)
-
-            if len(batch) >= batch_size:
-                inserted_records += insert_batch(batch, model)
-                batch.clear()
-
-    if batch:
-        inserted_records += insert_batch(batch, model)
-
-    print(f"✅ {inserted_records} van {total_records} records succesvol toegevoegd aan {model.__tablename__} (duplicaten genegeerd).")
-
 def process_directory(path, model, batch_size=1000):
     """
     Verwerkt alle JSON-bestanden in submappen (per jaar) van een opgegeven map en slaat ze batchgewijs op in de database.
@@ -339,61 +308,6 @@ def process_belpex_directory(path, batch_size=1000):
     else:
         print(f"✅ Belpexprijzen zijn up to date.")
 
-def to_sql_V1():
-    """
-    Laadt gegevens vanuit vaste mappenstructuur ('data/SolarForecast', 'data/WindForecast', 'data/Belpex') 
-    en schrijft deze naar de SQLite-database.
-
-    Verwerkt zowel JSON-bestanden (voor zon en wind) als CSV-bestanden (voor Belpex).
-    Sluit correct de databaseconnectie af.
-    """
-    BASE_DATA = os.path.join(os.path.dirname(__file__), "data")
-
-    try:
-        process_directory(os.path.join(BASE_DATA, "SolarForecast"), SolarData)
-        process_directory(os.path.join(BASE_DATA, "WindForecast"), WindData)
-        process_belpex_directory(os.path.join(BASE_DATA, "Belpex"))
-    except KeyboardInterrupt:
-        print("\n🛑 Script onderbroken door gebruiker.")
-    except Exception as e:
-        print(f"❌ Onverwachte fout: {e}")
-    finally:
-        session.close()              # sluit actieve sessie
-        engine.dispose()             # geef alle connecties vrij
-        print("🔒 Databaseverbinding correct afgesloten.")
-
-def to_sql_V2(update_solar=True, update_wind=True, update_belpex=True):
-    """
-    Laadt gegevens vanuit geselecteerde mappenstructuren en schrijft deze naar de SQLite-database.
-
-    Je kunt zelf kiezen welke datasets verwerkt worden:
-        - update_solar: Verwerk zonne-energie (JSON-bestanden)
-        - update_wind: Verwerk windenergie (JSON-bestanden)
-        - update_belpex: Verwerk Belpex-prijzen (CSV-bestanden)
-
-    Parameters:
-        update_solar (bool): Als True (=default), verwerk 'data/SolarForecast'
-        update_wind (bool): Als True (=default), verwerk 'data/WindForecast'
-        update_belpex (bool): Als True (=default), verwerk 'data/Belpex'
-    """
-    BASE_DATA = os.path.join(os.path.dirname(__file__), "data")
-
-    try:
-        if update_solar:
-            process_directory(os.path.join(BASE_DATA, "SolarForecast"), SolarData)
-        if update_wind:
-            process_directory(os.path.join(BASE_DATA, "WindForecast"), WindData)
-        if update_belpex:
-            process_belpex_directory(os.path.join(BASE_DATA, "Belpex"))
-    except KeyboardInterrupt:
-        print("\n🛑 Script onderbroken door gebruiker.")
-    except Exception as e:
-        print(f"❌ Onverwachte fout: {e}")
-    finally:
-        session.close()
-        engine.dispose()
-        print("🔒 Databaseverbinding correct afgesloten.")
-
 def to_sql(data_type="all"):
     """
     Laadt gegevens vanuit vaste mappenstructuur en schrijft deze naar de SQLite-database,
@@ -435,4 +349,4 @@ def to_sql(data_type="all"):
     finally:
         session.close()
         engine.dispose()
-        print("🔒 Databaseverbinding correct afgesloten.")
+        print("\n🔒 Databaseverbinding correct afgesloten.\n")
