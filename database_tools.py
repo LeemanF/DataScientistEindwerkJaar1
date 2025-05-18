@@ -26,7 +26,7 @@ def install_if_missing(package_name):
     Controleert of een Python-module is geïnstalleerd en installeert deze indien nodig via pip.
 
     Parameters:
-    package_name (str): De naam van de te installeren module.
+    - package_name (str): De naam van de te installeren module.
     """
     try:
         __import__(package_name)
@@ -41,7 +41,7 @@ install_if_missing("tqdm")
 
 # Pas na installatie importeren
 from tqdm import tqdm
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, UniqueConstraint
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, UniqueConstraint, Index
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
@@ -60,27 +60,37 @@ class SolarData(Base):
     SQLAlchemy-model voor het opslaan van zonne-energiegegevens in de database.
     
     Unieke combinatie: datetime + region
+    Index op de kolommen year, month, day en hour
     """
     __tablename__ = "solar_data"
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, nullable=False)
-    resolutioncode = Column(String)
-    region = Column(String)
-    measured = Column(Float)
-    mostrecentforecast = Column(Float)
-    mostrecentconfidence10 = Column(Float)
-    mostrecentconfidence90 = Column(Float)
-    dayahead11hforecast = Column(Float)
-    dayahead11hconfidence10 = Column(Float)
-    dayahead11hconfidence90 = Column(Float)
-    dayaheadforecast = Column(Float)
-    dayaheadconfidence10 = Column(Float)
-    dayaheadconfidence90 = Column(Float)
-    weekaheadforecast = Column(Float)
-    weekaheadconfidence10 = Column(Float)
-    weekaheadconfidence90 = Column(Float)
-    monitoredcapacity = Column(Float)
-    loadfactor = Column(Float)
+    resolutioncode = Column(String, info={"beschrijving": "Length of the time interval expressed in compliance with ISO 8601."})
+    region = Column(String, info={"beschrijving": "Location of the production unit."})
+    measured = Column(Float, info={"beschrijving": "The value running average measured for the reported time interval."})
+    mostrecentforecast = Column(Float, info={"beschrijving": "Most recently forecasted volume."})
+    mostrecentconfidence10 = Column(Float, 
+                                    info={"beschrijving": "Most recently forecasted volume with a probability of less than 10% that a lower volume will be produced."})
+    mostrecentconfidence90 = Column(Float, 
+                                    info={"beschrijving": "Most recently forecasted volume with a probability of less than 10% that a higher volume will be produced."})
+    dayahead11hforecast = Column(Float, info={"beschrijving": "Day-ahead forecasted volume published at 11AM. "})
+    dayahead11hconfidence10 = Column(Float, 
+                                     info={"beschrijving": "Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced, "
+                                     "published at 11AM."})
+    dayahead11hconfidence90 = Column(Float, 
+                                     info={"beschrijving": "Day-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced, "
+                                     "published at 11AM."})
+    dayaheadforecast = Column(Float, info={"beschrijving": "Day-ahead forecasted volume to be produced."})
+    dayaheadconfidence10 = Column(Float, 
+                                  info={"beschrijving": "Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced."})
+    dayaheadconfidence90 = Column(Float, info={"beschrijving": "Forecasted volume with a probability of less than 10% that a higher volume will be produced."})
+    weekaheadforecast = Column(Float, info={"beschrijving": "Week-ahead forecasted volume."})
+    weekaheadconfidence10 = Column(Float, 
+                                   info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced."})
+    weekaheadconfidence90 = Column(Float, 
+                                   info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced."})
+    monitoredcapacity = Column(Float, info={"beschrijving": "Total available production capacity."})
+    loadfactor = Column(Float, info={"beschrijving": "The percentage ratio between measured power generation and the total monitored power capacity."})
     day = Column(Integer)
     month = Column(Integer)
     year = Column(Integer)
@@ -89,6 +99,10 @@ class SolarData(Base):
     week = Column(Integer)
     __table_args__ = (
         UniqueConstraint('datetime', 'region', name='_datetime_region_uc'),
+        Index('idx_solar_year', 'year'),
+        Index('idx_solar_month', 'month'),
+        Index('idx_solar_day', 'day'),
+        Index('idx_solar_hour', 'hour'),
     )
 
 class WindData(Base):
@@ -96,30 +110,47 @@ class WindData(Base):
     SQLAlchemy-model voor het opslaan van windenergiegegevens in de database.
     
     Unieke combinatie: datetime + region + offshoreonshore + gridconnectiontype
+    Index op de kolommen year, month, day en hour
     """
     __tablename__ = "wind_data"
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, nullable=False)
-    resolutioncode = Column(String)
-    offshoreonshore = Column(String)
-    region = Column(String)
-    gridconnectiontype = Column(String)
-    measured = Column(Float)
-    mostrecentforecast = Column(Float)
-    mostrecentconfidence10 = Column(Float)
-    mostrecentconfidence90 = Column(Float)
-    dayahead11hforecast = Column(Float)
-    dayahead11hconfidence10 = Column(Float)
-    dayahead11hconfidence90 = Column(Float)
-    dayaheadforecast = Column(Float)
-    dayaheadconfidence10 = Column(Float)
-    dayaheadconfidence90 = Column(Float)
-    weekaheadforecast = Column(Float)
-    weekaheadconfidence10 = Column(Float)
-    weekaheadconfidence90 = Column(Float)
-    monitoredcapacity = Column(Float)
-    loadfactor = Column(Float)
-    decrementalbidid = Column(String)
+    resolutioncode = Column(String, info={"beschrijving": "Length of the time interval expressed in compliance with ISO 8601."})
+    offshoreonshore = Column(String, info={"beschrijving": "Indicates whether the wind farm is offshore or onshore."})
+    region = Column(String, info={"beschrijving": "Location of the production unit."})
+    gridconnectiontype = Column(String, 
+                                info={"beschrijving": "Indicates whether the production unit is connected to the Elia grid or to a DSO grid."})
+    measured = Column(Float, info={"beschrijving": "The value running average measured for the reported time interval."})
+    mostrecentforecast = Column(Float, info={"beschrijving": "Most recently forecasted volume."})
+    mostrecentconfidence10 = Column(Float, 
+                                    info={"beschrijving": "Most recently forecasted volume with a probability of less than 10% that a lower volume will be produced."})
+    mostrecentconfidence90 = Column(Float, 
+                                    info={"beschrijving": "Most recently forecasted volume with a probability of less than 10% that a higher volume will be produced."})
+    dayahead11hforecast = Column(Float, 
+                                 info={"beschrijving": "Day-ahead forecasted volume published at 11AM. "})
+    dayahead11hconfidence10 = Column(Float, 
+                                     info={"beschrijving": "Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced, "
+                                     "published at 11AM. "})
+    dayahead11hconfidence90 = Column(Float, 
+                                     info={"beschrijving": "Day-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced, "
+                                     "published at 11AM."})
+    dayaheadforecast = Column(Float, 
+                              info={"beschrijving": "Day-ahead forecasted volume to be produced."})
+    dayaheadconfidence10 = Column(Float, 
+                                  info={"beschrijving": "Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced."})
+    dayaheadconfidence90 = Column(Float, info={"beschrijving": "Forecasted volume with a probability of less than 10% that a higher volume will be produced."})
+    weekaheadforecast = Column(Float, info={"beschrijving": "Week-ahead forecasted volume."})
+    weekaheadconfidence10 = Column(Float, 
+                                   info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced."})
+    weekaheadconfidence90 = Column(Float, 
+                                   info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced."})
+    monitoredcapacity = Column(Float, info={"beschrijving": "Total available production capacity."})
+    loadfactor = Column(Float, info={"beschrijving": "The percentage ratio between measured power generation and the total monitored power capacity."})
+    decrementalbidid = Column(String, 
+                              info={"beschrijving": "Elia has requested the wind park to reduce production below its maximum capacity during this QH. "
+                              "This is defined as the amount of Megawatt for a given quarter-hour (QH).Empty: No decremental bids were requested by Elia, "
+                              "and the wind park is not required to lower its production during this QH..Note: Elia does not publish any information around "
+                              "decremental bids on request of the parks owners themselves."})
     day = Column(Integer)
     month = Column(Integer)
     year = Column(Integer)
@@ -128,6 +159,10 @@ class WindData(Base):
     week = Column(Integer)
     __table_args__ = (
         UniqueConstraint('datetime', 'region', 'offshoreonshore', 'gridconnectiontype', name='_datetime_region_offshore_connectiontype_uc'),
+        Index('idx_wind_year', 'year'),
+        Index('idx_wind_month', 'month'),
+        Index('idx_wind_day', 'day'),
+        Index('idx_wind_hour', 'hour'),
     )
 
 class BelpexPrice(Base):
@@ -135,6 +170,7 @@ class BelpexPrice(Base):
     SQLAlchemy-model voor het opslaan van Belpex-elektriciteitsprijzen in de database.
     
     Uniek veld: datetime
+    Index op de kolommen year, month, day en hour
     """
     __tablename__ = "belpex_prices"
     id = Column(Integer, primary_key=True)
@@ -146,19 +182,25 @@ class BelpexPrice(Base):
     hour = Column(Integer)
     minute = Column(Integer)
     week = Column(Integer)
-
-# Creëer tabellen
+    __table_args__ = (
+        Index('idx_belpex_year', 'year'),
+        Index('idx_belpex_month', 'month'),
+        Index('idx_belpex_day', 'day'),
+        Index('idx_belpex_hour', 'hour'),
+    )
+# Creëer tabellen op basis van de klassen die afstammen van de klasse Base
 Base.metadata.create_all(engine)
+
 
 def parse_record(record):
     """
     Zet een record om naar het juiste datetime-formaat en voegt datumcomponenten toe.
 
     Parameters:
-    record (dict): Een dictionary met ten minste een 'datetime'-sleutel (ISO-formaat).
+    - record (dict): Een dictionary met ten minste een 'datetime'-sleutel (ISO-formaat).
 
     Returns:
-    dict | None: Het verrijkte record of None bij een parsing-fout.
+    - dict | None: Het verrijkte record of None bij een parsing-fout.
     """
     try:
         dt = datetime.fromisoformat(record["datetime"].replace("Z", "+00:00"))
@@ -178,11 +220,11 @@ def insert_batch(batch, model):
     Voegt een batch records toe aan de database via een `INSERT OR IGNORE` statement.
 
     Parameters:
-    batch (list[dict]): Een lijst met dictionaries die overeenkomen met de databasekolommen.
-    model (Base): SQLAlchemy-modelklasse waarin de data wordt opgeslagen.
+    - batch (list[dict]): Een lijst met dictionaries die overeenkomen met de databasekolommen.
+    - model (Base): SQLAlchemy-modelklasse waarin de data wordt opgeslagen.
 
     Returns:
-    int: Aantal succesvol toegevoegde records.
+    - int: Aantal succesvol toegevoegde records.
     """
     try:
         stmt = sqlite_insert(model).prefix_with("OR IGNORE").values(batch)
@@ -208,9 +250,9 @@ def process_directory(path, model, batch_size=1000):
     Verwerkt alle JSON-bestanden in submappen (per jaar) van een opgegeven map en slaat ze batchgewijs op in de database.
     
     Parameters:
-        path (str): Pad naar de hoofdmap met submappen per jaar.
-        model (Base): SQLAlchemy-model waarin de records moeten worden opgeslagen (bv. SolarData of WindData).
-        batch_size (int): Aantal records per batch-insert (default = 1000).
+    - path (str): Pad naar de hoofdmap met submappen per jaar.
+    - model (Base): SQLAlchemy-model waarin de records moeten worden opgeslagen (bv. SolarData of WindData).
+    - batch_size (int): Aantal records per batch-insert (default = 1000).
     """
 
     for year_dir in sorted(os.listdir(path)):
@@ -263,8 +305,8 @@ def process_belpex_directory(path, batch_size=1000):
     Doorloopt een directory met CSV-bestanden met Belpex-data en voegt records toe aan de database.
 
     Parameters:
-    path (str): Pad naar de directory met .csv-bestanden.
-    batch_size (int): Aantal records per batch-insert (default = 1000).
+    - path (str): Pad naar de directory met .csv-bestanden.
+    - batch_size (int): Aantal records per batch-insert (default = 1000).
     """
     all_files = [os.path.join(path, f) for f in os.listdir(path) if f.endswith(".csv")]
     inserted_records = 0
@@ -319,7 +361,7 @@ def to_sql(data_type="all"):
         - all: Verwerk alle types (JSON- en CSV-bestanden)
 
     Parameters:
-        data_type (str): 'solar', 'wind', 'belpex' of 'all' — bepaalt welke gegevens worden verwerkt.
+    - data_type (str): 'solar', 'wind', 'belpex' of 'all' — bepaalt welke gegevens worden verwerkt.
     """
     BASE_DATA = os.path.join(os.path.dirname(__file__), "data")
 
@@ -350,3 +392,49 @@ def to_sql(data_type="all"):
         session.close()
         engine.dispose()
         print("\n🔒 Databaseverbinding correct afgesloten.\n")
+
+# --------------- Info over databasemodel ---------------
+
+def alle_modellen_en_kolommen(base_class):
+    """
+    Genereert een overzicht van alle SQLAlchemy-modellen die afstammen van een gegeven basisklasse,
+    samen met hun kolomnamen en optionele beschrijvingen.
+
+    Voor elke subklasse van `base_class` (typisch gemaakt met declarative_base()) wordt gecontroleerd
+    of deze daadwerkelijk gekoppeld is aan een database-tabel (via __tablename__ en __table__).
+    Vervolgens worden alle kolommen weergegeven, inclusief eventuele beschrijvingen die zijn toegevoegd
+    via het `info`-attribuut van SQLAlchemy.
+
+    Parameters:
+    - base_class : declarative_base()
+        De basisklasse waarvan alle SQLAlchemy-modellen afstammen. 
+        Voorbeeld: Base = declarative_base()
+
+    Returns:
+    - str
+        Een overzichtelijke string die de naam van elk model toont, gevolgd door de lijst van kolommen.
+        Indien beschikbaar, wordt ook een korte beschrijving per kolom getoond.
+    """
+    uitvoer = []
+
+    # Doorloop alle subklassen (modellen) die van base_class zijn afgeleid
+    for cls in base_class.__subclasses__():
+        # Controleer of het een geldig SQLAlchemy-model is met een gekoppelde tabel
+        if hasattr(cls, '__tablename__') and hasattr(cls, '__table__'):
+            uitvoer.append(f"Model: {cls.__name__}")
+
+            # Doorloop alle kolommen van de tabel
+            for kolom in cls.__table__.columns:
+                kolom_naam = kolom.name  # naam van de kolom
+                # Haal optionele beschrijving op (indien aanwezig)
+                beschrijving = kolom.info.get("beschrijving", None)
+                
+                # Voeg de kolom toe aan de uitvoer, met of zonder beschrijving
+                if beschrijving:
+                    uitvoer.append(f"  - {kolom_naam}: {beschrijving}")
+                else:
+                    uitvoer.append(f"  - {kolom_naam}")
+
+            uitvoer.append("")
+
+    return "\n".join(uitvoer)
