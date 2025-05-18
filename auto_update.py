@@ -73,6 +73,9 @@ class DualLogger:
 # Vervang sys.stdout en sys.stderr door een instantie van DualLogger
 # Hierdoor worden alle print()'s en foutmeldingen automatisch dubbel gelogd:
 # zichtbaar op het scherm én opgeslagen in het logbestand.
+# Bewaar eerst originele outputkanalen
+original_stdout = sys.stdout
+original_stderr = sys.stderr
 sys.stdout = sys.stderr = DualLogger(sys.stdout, log_path)
 
 # -------- Scriptuitvoering --------
@@ -89,3 +92,9 @@ except Exception as e:
     print("\n------------------------------------------------------------------------\n")
     print(traceback.format_exc())  # Print volledige fout-traceback
     print("------------------------------------------------------------------------\n")
+finally:
+    # Sluit het logbestand netjes af
+    sys.stdout.log.close()
+    # Herstel oorspronkelijke sys.stdout en sys.stderr
+    sys.stdout = original_stdout
+    sys.stderr = original_stderr
