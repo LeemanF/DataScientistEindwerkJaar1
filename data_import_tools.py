@@ -29,7 +29,7 @@ def install_if_missing(package_name):
     Controleert of een Python-module is geïnstalleerd en installeert deze indien nodig via pip.
 
     Parameters:
-    package_name (str): De naam van de te installeren module.
+    - package_name (str): De naam van de te installeren module.
     """
     try:
         __import__(package_name)
@@ -571,7 +571,7 @@ def unzip_all_forecast_zips(base_dir="Data", forecast_types=["SolarForecast", "W
 
     print('')
 
-# ----------- Combine functions and update data -----------
+# ----------- Bijwerken van de data-bestanden -----------
 
 def update_data(from_year=None, to_year=None, data_type='all'):
     """
