@@ -4,10 +4,14 @@ Data Import Tools for Elia Open Data & Belpex Market Data.
 Functies:
 - Automatische installatie van vereiste Python-modules.
 - Ophalen en lokaal opslaan van wind- en zonne-energievoorspellingen en -metingen (per dag) (JSON).
+    ° windenergie: https://opendata.elia.be/explore/dataset/ods031/information/
+    ° zonne-energie: https://opendata.elia.be/explore/dataset/ods032/information/
 - Ophalen van Belpex-spotmarktprijzen via webscraping (CSV).
 - Zippen en unzippen van de json-bestanden (wind- en zonne-energie) per jaar.
 - Opvangen van netwerkfouten en browserproblemen via retry-mechanismen.
 """
+
+# data_import_tools.py
 
 # ----------- Imports -----------
 

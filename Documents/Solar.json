@@ -1,0 +1,135 @@
+{
+    "title": "ods032",
+    "type": "object",
+    "oneOf": [
+        {
+            "$ref": "#/definitions/ods032"
+        }
+    ],
+    "definitions": {
+        "ods032": {
+            "properties": {
+                "records": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ods032_records"
+                    }
+                }
+            }
+        },
+        "ods032_records": {
+            "properties": {
+                "fields": {
+                    "type": "object",
+                    "properties": {
+                        "datetime": {
+                            "type": "string",
+                            "format": "date-time",
+                            "title": "Datetime",
+                            "description": "Time at which the interval starts."
+                        },
+                        "resolutioncode": {
+                            "type": "string",
+                            "title": "Resolution code",
+                            "description": "Length of the time interval expressed in compliance with ISO 8601."
+                        },
+                        "region": {
+                            "type": "string",
+                            "title": "Region",
+                            "description": "Location of the production unit."
+                        },
+                        "measured": {
+                            "type": "number",
+                            "title": "Measured & Upscaled",
+                            "description": "The value running average measured for the reported time interval.",
+                            "unit": "MW"
+                        },
+                        "mostrecentforecast": {
+                            "type": "number",
+                            "title": "Most recent forecast",
+                            "description": "Most recently forecasted volume.",
+                            "unit": "MW"
+                        },
+                        "mostrecentconfidence10": {
+                            "type": "number",
+                            "title": "Most recent P10",
+                            "description": "Most recently forecasted volume with a probability of less than 10% that a lower volume will be produced.",
+                            "unit": "MW"
+                        },
+                        "mostrecentconfidence90": {
+                            "type": "number",
+                            "title": "Most recent P90",
+                            "description": "Most recently forecasted volume with a probability of less than 10% that a higher volume will be produced.",
+                            "unit": "MW"
+                        },
+                        "dayahead11hforecast": {
+                            "type": "number",
+                            "title": "Day Ahead 11AM forecast",
+                            "description": "Day-ahead forecasted volume published at 11AM. ",
+                            "unit": "MW"
+                        },
+                        "dayahead11hconfidence10": {
+                            "type": "number",
+                            "title": "Day Ahead 11AM P10",
+                            "description": "Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced, published at 11AM. ",
+                            "unit": "MW"
+                        },
+                        "dayahead11hconfidence90": {
+                            "type": "number",
+                            "title": "Day Ahead 11AM P90",
+                            "description": "Day-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced, published at 11AM. ",
+                            "unit": "MW"
+                        },
+                        "dayaheadforecast": {
+                            "type": "number",
+                            "title": "Day-ahead 6PM forecast",
+                            "description": "Day-ahead forecasted volume to be produced.",
+                            "unit": "MW"
+                        },
+                        "dayaheadconfidence10": {
+                            "type": "number",
+                            "title": "Day-ahead 6PM P10",
+                            "description": "Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced.",
+                            "unit": "MW"
+                        },
+                        "dayaheadconfidence90": {
+                            "type": "number",
+                            "title": "Day-ahead 6PM P90",
+                            "description": "Forecasted volume with a probability of less than 10% that a higher volume will be produced.",
+                            "unit": "MW"
+                        },
+                        "weekaheadforecast": {
+                            "type": "number",
+                            "title": "Week-ahead forecast",
+                            "description": "Week-ahead forecasted volume.",
+                            "unit": "MW"
+                        },
+                        "weekaheadconfidence10": {
+                            "type": "number",
+                            "title": "Week-ahead P10",
+                            "description": "Week-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced.",
+                            "unit": "MW"
+                        },
+                        "weekaheadconfidence90": {
+                            "type": "number",
+                            "title": "Week-ahead P90",
+                            "description": "Week-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced.",
+                            "unit": "MW"
+                        },
+                        "monitoredcapacity": {
+                            "type": "number",
+                            "title": "Monitored capacity",
+                            "description": "Total available production capacity.",
+                            "unit": "MW"
+                        },
+                        "loadfactor": {
+                            "type": "number",
+                            "title": "Load factor",
+                            "description": "The percentage ratio between measured power generation and the total monitored power capacity."
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
