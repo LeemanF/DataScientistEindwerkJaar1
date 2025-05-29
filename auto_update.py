@@ -4,7 +4,6 @@ Automatisch update-script voor periodieke datavernieuwing.
 Beschrijving:
 - Dit script is bedoeld om automatisch uitgevoerd te worden via Windows Taakplanner.
 - Het importeert de laatste energiegegevens (bv. van Elia en Belpex) en schrijft deze weg naar een lokale SQL-database.
-- De functies zijn onderverdeeld in aparte modules voor herbruikbaarheid en onderhoudbaarheid.
 - Alle output wordt zowel weergegeven op het scherm als gelogd in een bestand.
 
 Modules:
@@ -17,7 +16,6 @@ Vereisten:
 
 Gebruik:
 - Inplannen via Windows Task Scheduler (bijv. dagelijks om 06:00).
-
 """
 
 # auto_update.py
@@ -46,55 +44,85 @@ class DualLogger:
     Vervangt sys.stdout en sys.stderr zodat alle output (zowel print als foutmeldingen)
     tegelijkertijd naar de console én naar een logbestand geschreven wordt.
 
+    Deze klasse werkt zowel als:
+    - Contextmanager: gebruik `with DualLogger(path):` om automatisch stdout/stderr te vervangen
+                      en het logbestand na afloop veilig te sluiten.
+    - Losse instantie: roep `logger = DualLogger(path)` aan, en vergeet `logger.close()` niet.
+
     Parameters:
-        stdout (TextIO): de originele standaarduitvoer (meestal de console).
-        logfile_path (str): pad naar het logbestand.
+    - logfile_path (str): Volledig pad naar het logbestand (zal geopend worden in append-modus).
+
+    Gebruik als contextmanager:
+    ----------------------------
+    with DualLogger("pad/naar/log.txt"):
+        print("Dit gaat naar console én naar logbestand.")
+        raise Exception("Fouten ook!")
+
+    Gebruik als losse instantie:
+    ----------------------------
+    logger = DualLogger("pad/naar/log.txt")
+    sys.stdout = sys.stderr = logger
+    print("Loggen zonder contextmanager.")
+    logger.close()  # Belangrijk!
     """
-    def __init__(self, stdout, logfile_path):
-        self.terminal = stdout  # Originele stdout (bijv. console)
-        self.log = open(logfile_path, "a", encoding="utf-8", errors="replace")  # Logbestand in append-modus
+
+    def __init__(self, logfile_path):
+        # Sla pad op en open het logbestand (append-modus, UTF-8)
+        self.logfile_path = logfile_path
+        self.log = open(self.logfile_path, "a", encoding="utf-8", errors="replace")
+
+        # Bewaar originele standaard streams om later te kunnen herstellen
+        self.original_stdout = sys.stdout
+        self.original_stderr = sys.stderr
 
     def write(self, message):
         """
         Wordt automatisch aangeroepen door print() of foutmeldingen.
         Schrijft het bericht zowel naar het scherm als naar het logbestand.
         """
-        self.terminal.write(message)  # Toon op het scherm
-        self.log.write(message)       # Schrijf naar het logbestand
+        self.original_stdout.write(message)   # Toon op het scherm
+        self.log.write(message)               # Schrijf naar het logbestand
 
     def flush(self):
         """
         Wordt automatisch aangeroepen om de buffer te legen.
         Noodzakelijk voor realtime logging of bij gebruik van print(..., flush=True).
         """
-        self.terminal.flush()
+        self.original_stdout.flush()
         self.log.flush()
 
-# Vervang sys.stdout en sys.stderr door een instantie van DualLogger
-# Hierdoor worden alle print()'s en foutmeldingen automatisch dubbel gelogd:
-# zichtbaar op het scherm én opgeslagen in het logbestand.
-# Bewaar eerst originele outputkanalen
-original_stdout = sys.stdout
-original_stderr = sys.stderr
-sys.stdout = sys.stderr = DualLogger(sys.stdout, log_path)
+    def close(self):
+        # Herstel standaard streams
+        sys.stdout = self.original_stdout
+        sys.stderr = self.original_stderr
+
+        # Sluit expliciet het logbestand bij manueel gebruik
+        self.log.close()
+
+    def __enter__(self):
+        # Contextmanager start: vervang stdout en stderr door deze logger
+        sys.stdout = sys.stderr = self
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        # Herstel oorspronkelijke streams
+        sys.stdout = self.original_stdout
+        sys.stderr = self.original_stderr
+        # Sluit het logbestand
+        self.log.close()
 
 # -------- Scriptuitvoering --------
 
-print("=======================================================================================")
-print(f"🕒 Start auto-update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+with DualLogger(log_path):
+    print("=======================================================================================")
+    print(f"🕒 Start auto-update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-try:
-    dit.update_data()
-    dbt.to_sql()
-    print(f"\n✅ Update afgerond: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-except Exception as e:
-    print(f"\n❌ Fout tijdens update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {e}")
-    print("\n------------------------------------------------------------------------\n")
-    print(traceback.format_exc())  # Print volledige fout-traceback
-    print("------------------------------------------------------------------------\n")
-finally:
-    # Sluit het logbestand netjes af
-    sys.stdout.log.close()
-    # Herstel oorspronkelijke sys.stdout en sys.stderr
-    sys.stdout = original_stdout
-    sys.stderr = original_stderr
+    try:
+        dit.update_data()
+        dbt.to_sql()
+        print(f"\n✅ Update afgerond: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    except Exception as e:
+        print(f"\n❌ Fout tijdens update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {e}")
+        print("\n------------------------------------------------------------------------\n")
+        print(traceback.format_exc())
+        print("------------------------------------------------------------------------\n")
