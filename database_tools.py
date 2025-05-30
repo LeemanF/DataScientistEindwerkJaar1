@@ -15,31 +15,15 @@ Functies:
 
 import os
 import json
-import subprocess
-import sys
 import csv
 from datetime import datetime
 import re
+from toolbox import update_or_install_if_missing
 
-# Automatische installatie van noodzakelijke modules
-
-def install_if_missing(package_name):
-    """
-    Controleert of een Python-module is geïnstalleerd en installeert deze indien nodig via pip.
-
-    Parameters:
-    - package_name (str): De naam van de te installeren module.
-    """
-    try:
-        __import__(package_name)
-    except ImportError:
-        print(f"Module '{package_name}' niet gevonden. Bezig met installeren...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
-        print(f"✅ Module '{package_name}' geïnstalleerd.")
-
-# Controleer en installeer de vereiste modules
-install_if_missing("sqlalchemy")
-install_if_missing("tqdm")
+# Controleer en installeer indien nodig de vereiste modules
+# Dit is een vangnet als de gebruiker geen rekening houdt met requirements.txt.
+update_or_install_if_missing("sqlalchemy","2.0.0")
+update_or_install_if_missing("tqdm","4.60.0")
 
 # Pas na installatie importeren
 from tqdm import tqdm

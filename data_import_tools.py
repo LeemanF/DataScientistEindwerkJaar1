@@ -23,29 +23,13 @@ import shutil
 from datetime import datetime
 import zipfile
 import functools
-import sys
-import subprocess
+from toolbox import update_or_install_if_missing
 
-# ----------- Automatische installatie van modules -----------
-
-def install_if_missing(package_name):
-    """
-    Controleert of een Python-module is geïnstalleerd en installeert deze indien nodig via pip.
-
-    Parameters:
-    - package_name (str): De naam van de te installeren module.
-    """
-    try:
-        __import__(package_name)
-    except ImportError:
-        print(f"📦 Module '{package_name}' niet gevonden. Bezig met installeren...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
-        print(f"✅ Module '{package_name}' geïnstalleerd.")
-
-# Controleer en installeer de vereiste modules
-install_if_missing("requests")
-install_if_missing("selenium")
-install_if_missing("webdriver_manager")
+# Controleer en installeer indien nodig de vereiste modules
+# Dit is een vangnet als de gebruiker geen rekening houdt met requirements.txt.
+update_or_install_if_missing("requests","2.25.0")
+update_or_install_if_missing("selenium","4.1.0")
+update_or_install_if_missing("webdriver_manager","3.5.0")
 
 # Pas na installatie importeren
 import requests
