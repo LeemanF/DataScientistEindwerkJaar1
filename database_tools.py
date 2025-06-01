@@ -51,9 +51,16 @@ class SolarData(Base):
     __tablename__ = "solar_data"
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, nullable=False)
+    year = Column(Integer)
+    month = Column(Integer)
+    day = Column(Integer)
+    week = Column(Integer)
+    hour = Column(Integer)
+    minute = Column(Integer)
     resolutioncode = Column(String, info={"beschrijving": "Length of the time interval expressed in compliance with ISO 8601."})
     region = Column(String, info={"beschrijving": "Location of the production unit."})
     measured = Column(Float, info={"beschrijving": "The value running average measured for the reported time interval."})
+    monitoredcapacity = Column(Float, info={"beschrijving": "Total available production capacity."})
     mostrecentforecast = Column(Float, info={"beschrijving": "Most recently forecasted volume."})
     mostrecentconfidence10 = Column(Float, 
                                     info={"beschrijving": "Most recently forecasted volume with a probability of less than 10% that a lower volume will be produced."})
@@ -75,14 +82,7 @@ class SolarData(Base):
                                    info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced."})
     weekaheadconfidence90 = Column(Float, 
                                    info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced."})
-    monitoredcapacity = Column(Float, info={"beschrijving": "Total available production capacity."})
     loadfactor = Column(Float, info={"beschrijving": "The percentage ratio between measured power generation and the total monitored power capacity."})
-    day = Column(Integer)
-    month = Column(Integer)
-    year = Column(Integer)
-    hour = Column(Integer)
-    minute = Column(Integer)
-    week = Column(Integer)
     __table_args__ = (
         UniqueConstraint('datetime', 'region', name='_datetime_region_uc'),
         Index('idx_solar_year', 'year'),
@@ -101,12 +101,19 @@ class WindData(Base):
     __tablename__ = "wind_data"
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, nullable=False)
+    year = Column(Integer)
+    month = Column(Integer)
+    day = Column(Integer)
+    week = Column(Integer)
+    hour = Column(Integer)
+    minute = Column(Integer)
     resolutioncode = Column(String, info={"beschrijving": "Length of the time interval expressed in compliance with ISO 8601."})
     offshoreonshore = Column(String, info={"beschrijving": "Indicates whether the wind farm is offshore or onshore."})
     region = Column(String, info={"beschrijving": "Location of the production unit."})
     gridconnectiontype = Column(String, 
                                 info={"beschrijving": "Indicates whether the production unit is connected to the Elia grid or to a DSO grid."})
     measured = Column(Float, info={"beschrijving": "The value running average measured for the reported time interval."})
+    monitoredcapacity = Column(Float, info={"beschrijving": "Total available production capacity."})
     mostrecentforecast = Column(Float, info={"beschrijving": "Most recently forecasted volume."})
     mostrecentconfidence10 = Column(Float, 
                                     info={"beschrijving": "Most recently forecasted volume with a probability of less than 10% that a lower volume will be produced."})
@@ -130,19 +137,12 @@ class WindData(Base):
                                    info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced."})
     weekaheadconfidence90 = Column(Float, 
                                    info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced."})
-    monitoredcapacity = Column(Float, info={"beschrijving": "Total available production capacity."})
     loadfactor = Column(Float, info={"beschrijving": "The percentage ratio between measured power generation and the total monitored power capacity."})
     decrementalbidid = Column(String, 
                               info={"beschrijving": "Elia has requested the wind park to reduce production below its maximum capacity during this QH. "
                               "This is defined as the amount of Megawatt for a given quarter-hour (QH).Empty: No decremental bids were requested by Elia, "
                               "and the wind park is not required to lower its production during this QH..Note: Elia does not publish any information around "
                               "decremental bids on request of the parks owners themselves."})
-    day = Column(Integer)
-    month = Column(Integer)
-    year = Column(Integer)
-    hour = Column(Integer)
-    minute = Column(Integer)
-    week = Column(Integer)
     __table_args__ = (
         UniqueConstraint('datetime', 'region', 'offshoreonshore', 'gridconnectiontype', name='_datetime_region_offshore_connectiontype_uc'),
         Index('idx_wind_year', 'year'),
@@ -161,13 +161,13 @@ class BelpexPrice(Base):
     __tablename__ = "belpex_prices"
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, nullable=False, unique=True)
-    price_eur_per_mwh = Column(Float)
-    day = Column(Integer)
-    month = Column(Integer)
     year = Column(Integer)
+    month = Column(Integer)
+    day = Column(Integer)
+    week = Column(Integer)
     hour = Column(Integer)
     minute = Column(Integer)
-    week = Column(Integer)
+    price_eur_per_mwh = Column(Float)
     __table_args__ = (
         Index('idx_belpex_year', 'year'),
         Index('idx_belpex_month', 'month'),
