@@ -1,4 +1,6 @@
 """
+database_tools.py
+
 Database Tools voor Elia Open Data & Belpex Market Data.
 
 Functies:
@@ -9,8 +11,6 @@ Functies:
 - Selectief verwerken van datasets via het `to_sql()`-commando.
 """
 
-# database_tools.py
-
 # ----------- Imports -----------
 
 import os
@@ -18,7 +18,7 @@ import json
 import csv
 from datetime import datetime
 import re
-from toolbox import update_or_install_if_missing
+from package_tools import update_or_install_if_missing
 
 # Controleer en installeer indien nodig de vereiste modules
 # Dit is een vangnet als de gebruiker geen rekening houdt met requirements.txt.

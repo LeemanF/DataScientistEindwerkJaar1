@@ -1,4 +1,6 @@
 """
+data_import_tools.py
+
 Data Import Tools for Elia Open Data & Belpex Market Data.
 
 Functies:
@@ -11,8 +13,6 @@ Functies:
 - Opvangen van netwerkfouten en browserproblemen via retry-mechanismen.
 """
 
-# data_import_tools.py
-
 # ----------- Imports -----------
 
 import os
@@ -22,8 +22,10 @@ import time
 import shutil
 from datetime import datetime
 import zipfile
-import functools
-from toolbox import update_or_install_if_missing
+
+from package_tools import update_or_install_if_missing
+from decorators import retry_on_failure
+from safe_requests import safe_requests_get
 
 # Controleer en installeer indien nodig de vereiste modules
 # Dit is een vangnet als de gebruiker geen rekening houdt met requirements.txt.
@@ -32,109 +34,11 @@ update_or_install_if_missing("selenium","4.1.0")
 update_or_install_if_missing("webdriver_manager","3.5.0")
 
 # Pas na installatie importeren
-import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-# ----------- Retry Decorator & Safe Request -----------
-
-def retry_on_failure(tries=3, delay=2, backoff=1, allowed_exceptions=(Exception,)):
-    """
-    Decorator om een functie meerdere keren opnieuw uit te voeren wanneer er een fout optreedt.
-
-    Deze decorator is nuttig bij tijdelijke fouten, zoals netwerkproblemen of onstabiele API-responses.
-    Als de gedecoreerde functie een uitzondering genereert die voorkomt in `allowed_exceptions`, 
-    zal ze automatisch opnieuw uitgevoerd worden tot het maximum aantal `tries` is bereikt.
-    Tussen elke poging wacht de functie `delay` seconden. Na elke fout wordt de wachttijd vermenigvuldigd 
-    met `backoff` (exponentiële backoff).
-
-    Parameters:
-    - tries (int): Het maximaal aantal pogingen voor de functie wordt opgegeven. Standaard: 3.
-    - delay (float): De initiële wachttijd (in seconden) tussen pogingen. Standaard: 2.
-    - backoff (float): De vermenigvuldigingsfactor voor de wachttijd bij elke fout. Standaard: 1 (geen toename).
-                      Een waarde >1 verhoogt de wachttijd exponentieel (bijv. 2 voor verdubbeling).
-    - allowed_exceptions (tuple): Een tuple van uitzonderingen waarvoor een retry toegestaan is.
-                                  Standaard: (Exception,), wat alle standaardfouten omvat.
-
-    Intern maakt de wrapper gebruik van lokale kopieën van de parameters `_tries` en `_delay`
-    om te voorkomen dat de oorspronkelijke decoratorwaarden (die gedeeld worden door alle oproepen)
-    overschreven of beïnvloed worden tijdens het uitvoeren van retries.
-
-    Gebruik:
-    @retry_on_failure(tries=5, delay=1, backoff=2, allowed_exceptions=(ConnectionError,))
-    def fetch_data():
-        ...
-
-    """
-    def decorator(func):
-        # Zorgt ervoor dat de metadata (naam, docstring, enz.) van de originele functie 
-        # behouden blijft in de gegenereerde wrapperfunctie.
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            # Lokale kopieën maken om te vermijden dat de originele decorator-argumenten 
-            # gewijzigd worden tijdens herhaalde pogingen
-            _tries, _delay = tries, delay
-            while _tries > 1:
-                try:
-                    return func(*args, **kwargs)
-                except allowed_exceptions as e:
-                    _tries -= 1
-                    print(f"⚠️ Fout '{e}' in {func.__name__}(). Nog {_tries} pogingen over... Wacht {_delay:.1f}s.")
-                    # Wacht voor het opgegeven aantal seconden
-                    time.sleep(_delay)
-                    _delay *= backoff
-            # Laatste poging buiten de while-loop: als deze ook faalt, wordt de uitzondering doorgegeven
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
-
-def safe_requests_get(url, params=None, headers=None, tries=3, delay=2, timeout=10):
-    """
-    Uitgebreide en veilige versie van requests.get() met ingebouwde retry-logica.
-
-    Deze functie probeert een HTTP GET-verzoek uit te voeren naar de opgegeven URL.
-    Als het verzoek faalt door een netwerkfout of een HTTP-fout (zoals 5xx of 4xx-status),
-    wordt het verzoek automatisch opnieuw geprobeerd tot een maximum van `tries` keer.
-    Na elke mislukte poging wordt `delay` seconden gewacht alvorens opnieuw te proberen.
-
-    Parameters:
-    - url (str): De URL waarnaar het GET-verzoek wordt verzonden.
-    - params (dict, optional): Optionele query parameters toe te voegen aan het verzoek.
-    - headers (dict, optional): Optionele headers om mee te sturen met het verzoek.
-    - tries (int): Aantal pogingen bij fouten. Standaard is 3.
-    - delay (int or float): Wachtijd (in seconden) tussen pogingen. Standaard is 2.
-    - timeout (int or float): Maximum wachttijd voor een antwoord van de server. Standaard is 10 seconden.
-
-    Retourneert:
-    - response (requests.Response): Het response-object als het verzoek succesvol was.
-
-    Raises:
-    - requests.exceptions.RequestException: Als alle pogingen mislukken of er een andere fout optreedt.
-    
-    Gebruik:
-    response = safe_requests_get("https://api.example.com/data", tries=5, delay=1)
-
-    """
-    # Lokale kopie van tries maken zodat de oorspronkelijke waarde behouden blijft bij hergebruik
-    _tries = tries
-    while _tries > 1:
-        try:
-            response = requests.get(url, params=params, headers=headers, timeout=timeout)
-            # Roep een uitzondering op bij een HTTP-statuscode die een fout aangeeft (4xx of 5xx)
-            response.raise_for_status()
-            return response
-        except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
-            print(f"⚠️ Request fout: {e}. Nog {_tries-1} pogingen... Wacht {delay}s.")
-            # Wacht voor het opgegeven aantal seconden
-            time.sleep(delay)
-            _tries -= 1
-    # Laatste poging buiten de loop: als deze faalt, wordt de uitzondering niet meer opgevangen
-    response = requests.get(url, params=params, headers=headers, timeout=timeout)
-    response.raise_for_status()
-    return response
 
 # ----------- Data Import Functies -----------
 

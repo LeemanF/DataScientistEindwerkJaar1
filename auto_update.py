@@ -20,14 +20,13 @@ Gebruik:
 
 # auto_update.py
 
-import sys
 import os
 import traceback
 from datetime import datetime
 
 from data_import_tools import update_data
 from database_tools import to_sql
-from toolbox import DualLogger
+from dual_logger import DualLogger
 
 # -------- Logging Setup --------
 
