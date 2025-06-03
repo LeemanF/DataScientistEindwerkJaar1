@@ -1,4 +1,6 @@
 """
+auto_update.py
+
 Automatisch update-script voor periodieke datavernieuwing.
 
 Beschrijving:
@@ -18,8 +20,6 @@ Gebruik:
 - Inplannen via Windows Task Scheduler (bijv. dagelijks om 06:00).
 """
 
-# auto_update.py
-
 import os
 import traceback
 from datetime import datetime
@@ -27,11 +27,11 @@ from datetime import datetime
 from data_import_tools import update_data
 from database_tools import to_sql
 from dual_logger import DualLogger
+from settings import LOG_DIR
 
 # -------- Logging Setup --------
 
 # Maak een map aan voor logbestanden (indien die nog niet bestaat)
-LOG_DIR = os.path.join(os.path.dirname(__file__), "Log")
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # Stel het logbestand in met als naam het huidige datumformaat (log_YYYY-MM-DD.txt)

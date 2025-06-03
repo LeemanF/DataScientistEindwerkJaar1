@@ -30,13 +30,13 @@ from tqdm import tqdm
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, UniqueConstraint, Index
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from settings import DB_FILE, SOLAR_FORECAST_DIR, WIND_FORECAST_DIR, BELPEX_DIR
 
 # Database setup:
 # Initialisatie van de SQLite-engine en sessie, met automatische creatie van tabellen op basis van gedefinieerde modellen.
 Base = declarative_base()
-DB_PATH = os.path.join(os.path.dirname(__file__), "Database", "energie_data.sqlite")
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-engine = create_engine(f"sqlite:///{DB_PATH}")
+os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
+engine = create_engine(f"sqlite:///{DB_FILE}")
 Session = sessionmaker(bind=engine)
 session = Session()
 
@@ -349,24 +349,23 @@ def to_sql(data_type="all"):
     Parameters:
     - data_type (str): 'solar', 'wind', 'belpex' of 'all' — bepaalt welke gegevens worden verwerkt.
     """
-    BASE_DATA = os.path.join(os.path.dirname(__file__), "data")
 
     try:
         if data_type in ("solar", "all"):
             try:
-                process_directory(os.path.join(BASE_DATA, "SolarForecast"), SolarData)
+                process_directory(SOLAR_FORECAST_DIR, SolarData)
             except Exception as e:
                 print(f"❌ Fout bij verwerken data zonne-energie: {e}")
 
         if data_type in ("wind", "all"):
             try:
-                process_directory(os.path.join(BASE_DATA, "WindForecast"), WindData)
+                process_directory(WIND_FORECAST_DIR, WindData)
             except Exception as e:
                 print(f"❌ Fout bij verwerken data windenergie: {e}")
 
         if data_type in ("belpex", "all"):
             try:
-                process_belpex_directory(os.path.join(BASE_DATA, "Belpex"))
+                process_belpex_directory(BELPEX_DIR)
             except Exception as e:
                 print(f"❌ Fout bij verwerken data Belpexprijzen: {e}")
 

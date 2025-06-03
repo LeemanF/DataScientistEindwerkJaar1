@@ -34,7 +34,7 @@ class DualLogger:
 
     def __init__(self, logfile_path):
         # Sla pad op en open het logbestand (append-modus, UTF-8)
-        self.logfile_path = logfile_path
+        self.logfile_path = str(logfile_path)
         self.log = open(self.logfile_path, "a", encoding="utf-8", errors="replace")
 
         # Bewaar originele standaard streams om later te kunnen herstellen

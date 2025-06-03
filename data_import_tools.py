@@ -26,6 +26,7 @@ import zipfile
 from package_tools import update_or_install_if_missing
 from decorators import retry_on_failure
 from safe_requests import safe_requests_get
+from settings import HTTP_TIMEOUT, DEFAULT_ATTEMPTS, RETRY_DELAY, BELPEX_DIR, SOLAR_FORECAST_DIR, WIND_FORECAST_DIR, BASE_DIR
 
 # Controleer en installeer indien nodig de vereiste modules
 # Dit is een vangnet als de gebruiker geen rekening houdt met requirements.txt.
@@ -42,7 +43,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # ----------- Data Import Functies -----------
 
-@retry_on_failure(tries=3, delay=5)
+@retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
 def import_wind(year,month):
     """
     Download en sla windforecast-data op voor een opgegeven maand uit de Elia Open Data API.
@@ -66,8 +67,7 @@ def import_wind(year,month):
     _, num_days = calendar.monthrange(year, month)
 
     # Stel pad samen voor jaarspecifieke map en maak deze aan indien nodig
-    base_folder = r"Data\WindForecast"
-    year_folder = os.path.join(base_folder, str(year))
+    year_folder = os.path.join(WIND_FORECAST_DIR, str(year))
     os.makedirs(year_folder, exist_ok=True)
 
     # Loop over elke dag van de maand
@@ -104,7 +104,7 @@ def import_wind(year,month):
             }
 
             # Voer het verzoek uit via de veilige request-functie met retry
-            response = safe_requests_get(url, params=params)
+            response = safe_requests_get(url, params=params,tries=DEFAULT_ATTEMPTS,delay=RETRY_DELAY,timeout=HTTP_TIMEOUT)
 
             # Extra controle op HTTP-status (niet echt nodig door raise_for_status(), maar extra informatief)
             if response.status_code != 200:
@@ -129,7 +129,7 @@ def import_wind(year,month):
         else:
             print(f"      ❌ Geen data voor {date_str}")
 
-@retry_on_failure(tries=3, delay=5)
+@retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
 def import_solar(year,month):
     """
     Download en sla zonneforecast-data op voor een opgegeven maand uit de Elia Open Data API.
@@ -151,8 +151,7 @@ def import_solar(year,month):
     _, num_days = calendar.monthrange(year, month)
 
     # Stel pad samen voor jaarspecifieke map en maak deze aan indien nodig
-    base_folder = r"Data\SolarForecast"
-    year_folder = os.path.join(base_folder, str(year))
+    year_folder = os.path.join(SOLAR_FORECAST_DIR, str(year))
     os.makedirs(year_folder, exist_ok=True)
 
     # Loop over elke dag van de maand
@@ -190,7 +189,7 @@ def import_solar(year,month):
             }
 
              # Voer het verzoek uit via de veilige request-functie met retry
-            response = safe_requests_get(url, params=params)
+            response = safe_requests_get(url, params=params,tries=DEFAULT_ATTEMPTS,delay=RETRY_DELAY,timeout=HTTP_TIMEOUT)
 
             # Extra controle op HTTP-status (niet echt nodig door raise_for_status(), maar extra informatief)
             if response.status_code != 200:
@@ -215,7 +214,7 @@ def import_solar(year,month):
         else:
             print(f"      ❌ Geen data voor {date_str}")
 
-@retry_on_failure(tries=3, delay=5)
+@retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
 def import_belpex(year, month):
     """
     Download Belpex-spotmarktprijzen via browserautomatisering (Selenium).
@@ -249,7 +248,7 @@ def import_belpex(year, month):
     until_date = next_month_first_day.strftime("%d/%m/%Y")
 
     # Downloadpad instellen en aanmaken indien nodig
-    download_dir = os.path.join(os.getcwd(), "Data\\Belpex")
+    download_dir = str(BELPEX_DIR)
     os.makedirs(download_dir, exist_ok=True)
 
     # Setup voor Chrome
@@ -360,7 +359,7 @@ def file_needs_zip(zip_path, folder_path):
                     return True  # Bestand is recenter dan de zip → zip nodig
     return False  # Alles is ouder → zip is up-to-date
 
-def zip_forecast_data(base_dir="Data", forecast_types=["SolarForecast", "WindForecast"]):
+def zip_forecast_data(forecast_types=["SolarForecast", "WindForecast"]):
     """
     Maak ZIP-bestanden aan voor zonne- en windbestanden (JSON) per jaar en per type.
 
@@ -375,7 +374,12 @@ def zip_forecast_data(base_dir="Data", forecast_types=["SolarForecast", "WindFor
     - Bestaat een zip reeds en is deze up-to-date, dan wordt deze overgeslagen.
     """
     for forecast_type in forecast_types:
-        type_folder = os.path.join(base_dir, forecast_type)
+        if forecast_type == "WindForecast":
+            type_folder = WIND_FORECAST_DIR
+        elif forecast_type == "SolarForecast":
+            type_folder = SOLAR_FORECAST_DIR
+        else:
+            type_folder = os.path.join(BASE_DIR, forecast_type)
 
         if not os.path.isdir(type_folder):
             print(f"   ⚠️ Map bestaat niet: {type_folder}")
@@ -449,7 +453,12 @@ def unzip_all_forecast_zips(base_dir="Data", forecast_types=["SolarForecast", "W
     - Alleen nieuwe bestanden worden uitgepakt.
     """
     for forecast_type in forecast_types:
-        type_folder = os.path.join(base_dir, forecast_type)
+        if forecast_type == "WindForecast":
+            type_folder = WIND_FORECAST_DIR
+        elif forecast_type == "SolarForecast":
+            type_folder = SOLAR_FORECAST_DIR
+        else:
+            type_folder = os.path.join(BASE_DIR, forecast_type)
 
         if not os.path.isdir(type_folder):
             print(f"   ❌ Map niet gevonden: {type_folder}")
