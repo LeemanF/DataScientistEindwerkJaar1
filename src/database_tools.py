@@ -18,7 +18,7 @@ import json
 import csv
 from datetime import datetime
 import re
-from package_tools import update_or_install_if_missing
+from src.utils.package_tools import update_or_install_if_missing
 
 # Controleer en installeer indien nodig de vereiste modules
 # Dit is een vangnet als de gebruiker geen rekening houdt met requirements.txt.
