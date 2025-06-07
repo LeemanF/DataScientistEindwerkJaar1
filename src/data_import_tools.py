@@ -25,7 +25,6 @@ import zipfile
 
 from .utils.package_tools import update_or_install_if_missing
 from .utils.decorators import retry_on_failure
-from .utils.safe_requests import safe_requests_get
 from settings import HTTP_TIMEOUT, DEFAULT_ATTEMPTS, RETRY_DELAY, BELPEX_DIR, SOLAR_FORECAST_DIR, WIND_FORECAST_DIR, BASE_DIR
 
 # Controleer en installeer indien nodig de vereiste modules
@@ -35,6 +34,7 @@ update_or_install_if_missing("selenium","4.1.0")
 update_or_install_if_missing("webdriver_manager","3.5.0")
 
 # Pas na installatie importeren
+from .utils.safe_requests import safe_requests_get
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -364,7 +364,6 @@ def zip_forecast_data(forecast_types=["SolarForecast", "WindForecast"]):
     Maak ZIP-bestanden aan voor zonne- en windbestanden (JSON) per jaar en per type.
 
     Parameters:
-    - base_dir (str): Basisdirectory waarin de data zich bevindt.
     - forecast_types (list[str]): Lijst met types, zoals "SolarForecast" of "WindForecast".
 
     Werking:
@@ -440,12 +439,11 @@ def unzip_forecast_data(zip_path, extract_to=None):
             os.utime(extracted_path, (date_time, date_time))
             print(f"      ✅ Uitgepakt: {member.filename}")
 
-def unzip_all_forecast_zips(base_dir="Data", forecast_types=["SolarForecast", "WindForecast"]):
+def unzip_all_forecast_zips(forecast_types=["SolarForecast", "WindForecast"]):
     """
     Pak alle zipbestanden uit in opgegeven forecastfolders.
 
     Parameters:
-    - base_dir (str): Basisdirectory waarin forecasttypes zich bevinden.
     - forecast_types (list[str]): Lijst van types met forecasts, bijvoorbeeld ["SolarForecast", "WindForecast"].
 
     Werking:

@@ -90,7 +90,7 @@ Elke tabel bevat indexen op jaar/maand/dag/uur en gebruikt unieke constraints om
 
 ```
 Project/
-├── .gitignore                     # Bestanden/mappen uitgesloten van versiebeheer
+├── .gitignore                    # Bestanden/mappen uitgesloten van versiebeheer
 ├── auto_update.py                # Script voor automatische updates van data
 ├── main.ipynb                    # Hoofdnotebook voor analyse en/of verwerking
 ├── requirements.txt              # Vereiste Python-pakketten
