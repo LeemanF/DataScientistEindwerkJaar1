@@ -62,9 +62,9 @@ Hierdoor worden netwerkproblemen automatisch opgevangen met maximaal twee extra 
 
 #### Gegevensopslag en compressie
 De opgehaalde Elia-data worden opgeslagen als dagelijkse JSON-bestanden.  
-Om opslagruimte te beperken en versiebeheer te vereenvoudigen, worden deze per maand gecomprimeerd (.zip).
-Dit maakt het eenvoudiger om data op GitHub te beheren en voorkomt overbodige duplicatie in versiebeheer.
-De zip-bestanden bevatten steeds een volledige maand per type (zonne- of windenergie), wat ook het manueel beheren vergemakkelijkt.
+Om opslagruimte te beperken en versiebeheer te vereenvoudigen, worden deze per maand gecomprimeerd (.zip).  
+Dit maakt het eenvoudiger om data op GitHub te beheren en voorkomt overbodige duplicatie in versiebeheer.  
+De zip-bestanden bevatten steeds een volledige maand per type (zonne- of windenergie), wat ook het manueel beheren vergemakkelijkt.  
 
 Belangrijke functies:
 - `file_needs_zip(...)`
