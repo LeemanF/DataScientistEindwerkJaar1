@@ -24,6 +24,9 @@ def alle_modellen_en_kolommen(base_class):
     Vervolgens worden alle kolommen weergegeven, inclusief eventuele beschrijvingen die zijn toegevoegd
     via het `info`-attribuut van SQLAlchemy.
 
+    Daarnaast worden ook constraints (zoals primaire sleutels, foreign keys en unieke restricties) 
+    en indexen per tabel weergegeven, voor een volledig beeld van de tabelstructuur.
+
     Parameters:
     - base_class : declarative_base()
         De basisklasse waarvan alle SQLAlchemy-modellen afstammen. 
@@ -31,8 +34,10 @@ def alle_modellen_en_kolommen(base_class):
 
     Returns:
     - str
-        Een overzichtelijke string die de naam van elk model toont, gevolgd door de lijst van kolommen.
-        Indien beschikbaar, wordt ook een korte beschrijving per kolom getoond.
+        Een overzichtelijke string die de naam van elk model toont, gevolgd door:
+            - de lijst van kolommen (met optionele beschrijving)
+            - de constraints op de tabel
+            - de indexen op de tabel
     """
     uitvoer = []
 
@@ -40,7 +45,7 @@ def alle_modellen_en_kolommen(base_class):
     for cls in base_class.__subclasses__():
         # Controleer of het een geldig SQLAlchemy-model is met een gekoppelde tabel
         if hasattr(cls, '__tablename__') and hasattr(cls, '__table__'):
-            uitvoer.append(f"Model: {cls.__name__}")
+            uitvoer.append(f"Model: {cls.__name__} (tabel: {cls.__tablename__})")
 
             # Doorloop alle kolommen van de tabel
             for kolom in cls.__table__.columns:
@@ -53,6 +58,20 @@ def alle_modellen_en_kolommen(base_class):
                     uitvoer.append(f"  - {kolom_naam}: {beschrijving}")
                 else:
                     uitvoer.append(f"  - {kolom_naam}")
+
+            # Voeg constraint-informatie toe
+            if cls.__table__.constraints:
+                uitvoer.append("\n  Constraints:")
+                for constraint in cls.__table__.constraints:
+                    uitvoer.append(f"    - {type(constraint).__name__}: {str(constraint)}")
+
+            # Voeg index-informatie toe
+            if cls.__table__.indexes:
+                uitvoer.append("\n  Indexen:")
+                for index in cls.__table__.indexes:
+                    uitvoer.append(f"    - {index.name}: columns={[col.name for col in index.columns]}")
+
+
 
             uitvoer.append("")
 

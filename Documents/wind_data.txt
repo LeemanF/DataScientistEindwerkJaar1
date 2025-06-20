@@ -1,0 +1,41 @@
+Model: WindData (tabel: wind_data)
+  - id
+  - datetime
+  - year
+  - month
+  - day
+  - weekday
+  - hour
+  - minute
+  - resolutioncode: Length of the time interval expressed in compliance with ISO 8601.
+  - offshoreonshore: Indicates whether the wind farm is offshore or onshore.
+  - region: Location of the production unit.
+  - gridconnectiontype: Indicates whether the production unit is connected to the Elia grid or to a DSO grid.
+  - measured: The value running average measured for the reported time interval.
+  - monitoredcapacity: Total available production capacity.
+  - mostrecentforecast: Most recently forecasted volume.
+  - mostrecentconfidence10: Most recently forecasted volume with a probability of less than 10% that a lower volume will be produced.
+  - mostrecentconfidence90: Most recently forecasted volume with a probability of less than 10% that a higher volume will be produced.
+  - dayahead11hforecast: Day-ahead forecasted volume published at 11AM. 
+  - dayahead11hconfidence10: Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced, published at 11AM. 
+  - dayahead11hconfidence90: Day-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced, published at 11AM.
+  - dayaheadforecast: Day-ahead forecasted volume to be produced.
+  - dayaheadconfidence10: Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced.
+  - dayaheadconfidence90: Forecasted volume with a probability of less than 10% that a higher volume will be produced.
+  - weekaheadforecast: Week-ahead forecasted volume.
+  - weekaheadconfidence10: Week-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced.
+  - weekaheadconfidence90: Week-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced.
+  - loadfactor: The percentage ratio between measured power generation and the total monitored power capacity.
+  - decrementalbidid: Elia has requested the wind park to reduce production below its maximum capacity during this QH. This is defined as the amount of Megawatt for a given quarter-hour (QH).Empty: No decremental bids were requested by Elia, and the wind park is not required to lower its production during this QH..Note: Elia does not publish any information around decremental bids on request of the parks owners themselves.
+
+  Constraints:
+    - PrimaryKeyConstraint: PrimaryKeyConstraint(Column('id', Integer(), table=<wind_data>, primary_key=True, nullable=False))
+    - UniqueConstraint: UniqueConstraint(Column('datetime', DateTime(), table=<wind_data>, nullable=False), Column('region', String(), table=<wind_data>), Column('offshoreonshore', String(), table=<wind_data>), Column('gridconnectiontype', String(), table=<wind_data>))
+
+  Indexen:
+    - idx_wind_month: columns=['month']
+    - idx_wind_day: columns=['day']
+    - idx_wind_weekday: columns=['weekday']
+    - idx_wind_hour: columns=['hour']
+    - idx_wind_year: columns=['year']
+    - idx_wind_datetime: columns=['datetime']

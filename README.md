@@ -1,7 +1,7 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 09/06/2025
+Laatste update 20/06/2025
 
 Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -94,11 +94,11 @@ De verkregen data wordt in alle modellen aangevuld met extra tijdsdimensies in d
 - `day`
 - `month`
 - `year`
-- `week`
+- `weekday`
 - `hour`
 - `minute`  
 
-Deze extra tijdsdimensies maken het mogelijk om flexibel te groeperen en te visualiseren op dag-, week-, maand- of uurniveau.
+Deze extra tijdsdimensies maken het mogelijk om flexibel te groeperen en te visualiseren op dag-, week-, maand-, weekdag- of uurniveau.
 
 #### Toevoegen records aan database
 
@@ -150,11 +150,11 @@ De SQLite-database bevindt zich standaard in:
 `./Database/energie_data.sqlite`
 
 Tabellen:
-- `solar_data`
-- `wind_data`
-- `belpex_prices`
+- [solar_data](Documents/solar_data.txt)
+- [wind_data](Documents/wind_data.txt)
+- [belpex_prices](Documents/belpex_prices.txt)
 
-Elke tabel bevat indexen op jaar, maand, dag en uur, en gebruikt unieke constraints om duplicaten te vermijden.
+Elke tabel bevat indexen op datetime, jaar, maand, dag, weekdag en uur, en gebruikt unieke constraints om duplicaten te vermijden.
 
 ---
 

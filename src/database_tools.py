@@ -46,7 +46,7 @@ class SolarData(Base):
     SQLAlchemy-model voor het opslaan van zonne-energiegegevens in de database.
     
     Unieke combinatie: datetime + region
-    Index op de kolommen year, month, day en hour
+    Index op de kolommen datetime, year, month, day, weekday en hour
     """
     __tablename__ = "solar_data"
     id = Column(Integer, primary_key=True)
@@ -54,7 +54,7 @@ class SolarData(Base):
     year = Column(Integer)
     month = Column(Integer)
     day = Column(Integer)
-    week = Column(Integer)
+    weekday = Column(Integer)
     hour = Column(Integer)
     minute = Column(Integer)
     resolutioncode = Column(String, info={"beschrijving": "Length of the time interval expressed in compliance with ISO 8601."})
@@ -85,9 +85,11 @@ class SolarData(Base):
     loadfactor = Column(Float, info={"beschrijving": "The percentage ratio between measured power generation and the total monitored power capacity."})
     __table_args__ = (
         UniqueConstraint('datetime', 'region', name='_datetime_region_uc'),
+        Index('idx_solar_datetime', 'datetime'),
         Index('idx_solar_year', 'year'),
         Index('idx_solar_month', 'month'),
         Index('idx_solar_day', 'day'),
+        Index('idx_solar_weekday', 'weekday'),
         Index('idx_solar_hour', 'hour'),
     )
 
@@ -96,7 +98,7 @@ class WindData(Base):
     SQLAlchemy-model voor het opslaan van windenergiegegevens in de database.
     
     Unieke combinatie: datetime + region + offshoreonshore + gridconnectiontype
-    Index op de kolommen year, month, day en hour
+    Index op de kolommen datetime, year, month, day, weekday en hour
     """
     __tablename__ = "wind_data"
     id = Column(Integer, primary_key=True)
@@ -104,7 +106,7 @@ class WindData(Base):
     year = Column(Integer)
     month = Column(Integer)
     day = Column(Integer)
-    week = Column(Integer)
+    weekday = Column(Integer)
     hour = Column(Integer)
     minute = Column(Integer)
     resolutioncode = Column(String, info={"beschrijving": "Length of the time interval expressed in compliance with ISO 8601."})
@@ -145,9 +147,11 @@ class WindData(Base):
                               "decremental bids on request of the parks owners themselves."})
     __table_args__ = (
         UniqueConstraint('datetime', 'region', 'offshoreonshore', 'gridconnectiontype', name='_datetime_region_offshore_connectiontype_uc'),
+        Index('idx_wind_datetime', 'datetime'),
         Index('idx_wind_year', 'year'),
         Index('idx_wind_month', 'month'),
         Index('idx_wind_day', 'day'),
+        Index('idx_wind_weekday', 'weekday'),
         Index('idx_wind_hour', 'hour'),
     )
 
@@ -156,15 +160,15 @@ class BelpexPrice(Base):
     SQLAlchemy-model voor het opslaan van Belpex-elektriciteitsprijzen in de database.
     
     Uniek veld: datetime
-    Index op de kolommen year, month, day en hour
+    Index op de kolommen year, month, day, weekday en hour
     """
     __tablename__ = "belpex_prices"
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, nullable=False, unique=True)
     year = Column(Integer)
     month = Column(Integer)
+    weekday = Column(Integer)
     day = Column(Integer)
-    week = Column(Integer)
     hour = Column(Integer)
     minute = Column(Integer)
     price_eur_per_mwh = Column(Float)
@@ -172,6 +176,7 @@ class BelpexPrice(Base):
         Index('idx_belpex_year', 'year'),
         Index('idx_belpex_month', 'month'),
         Index('idx_belpex_day', 'day'),
+        Index('idx_belpex_weekday', 'weekday'),
         Index('idx_belpex_hour', 'hour'),
     )
 # Creëer tabellen op basis van de klassen die afstammen van de klasse Base
@@ -196,7 +201,7 @@ def parse_record(record):
         record["year"] = dt.year
         record["hour"] = dt.hour
         record["minute"] = dt.minute
-        record["week"] = dt.isocalendar()[1]
+        record["weekday"] = dt.isoweekday()
         return record
     except Exception as e:
         return None
@@ -318,7 +323,7 @@ def process_belpex_directory(path, batch_size=1000):
                         "year": dt.year,
                         "hour": dt.hour,
                         "minute": dt.minute,
-                        "week": dt.isocalendar()[1]
+                        "weekday": dt.isoweekday()
                     }
                     batch.append(record)
                 except Exception as e:

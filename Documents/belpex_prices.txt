@@ -1,0 +1,21 @@
+Model: BelpexPrice (tabel: belpex_prices)
+  - id
+  - datetime
+  - year
+  - month
+  - weekday
+  - day
+  - hour
+  - minute
+  - price_eur_per_mwh
+
+  Constraints:
+    - PrimaryKeyConstraint: PrimaryKeyConstraint(Column('id', Integer(), table=<belpex_prices>, primary_key=True, nullable=False))
+    - UniqueConstraint: UniqueConstraint(Column('datetime', DateTime(), table=<belpex_prices>, nullable=False))
+
+  Indexen:
+    - idx_belpex_hour: columns=['hour']
+    - idx_belpex_weekday: columns=['weekday']
+    - idx_belpex_day: columns=['day']
+    - idx_belpex_month: columns=['month']
+    - idx_belpex_year: columns=['year']

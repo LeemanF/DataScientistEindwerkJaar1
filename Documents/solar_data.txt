@@ -1,0 +1,38 @@
+Model: SolarData (tabel: solar_data)
+  - id
+  - datetime
+  - year
+  - month
+  - day
+  - weekday
+  - hour
+  - minute
+  - resolutioncode: Length of the time interval expressed in compliance with ISO 8601.
+  - region: Location of the production unit.
+  - measured: The value running average measured for the reported time interval.
+  - monitoredcapacity: Total available production capacity.
+  - mostrecentforecast: Most recently forecasted volume.
+  - mostrecentconfidence10: Most recently forecasted volume with a probability of less than 10% that a lower volume will be produced.
+  - mostrecentconfidence90: Most recently forecasted volume with a probability of less than 10% that a higher volume will be produced.
+  - dayahead11hforecast: Day-ahead forecasted volume published at 11AM. 
+  - dayahead11hconfidence10: Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced, published at 11AM.
+  - dayahead11hconfidence90: Day-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced, published at 11AM.
+  - dayaheadforecast: Day-ahead forecasted volume to be produced.
+  - dayaheadconfidence10: Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced.
+  - dayaheadconfidence90: Forecasted volume with a probability of less than 10% that a higher volume will be produced.
+  - weekaheadforecast: Week-ahead forecasted volume.
+  - weekaheadconfidence10: Week-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced.
+  - weekaheadconfidence90: Week-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced.
+  - loadfactor: The percentage ratio between measured power generation and the total monitored power capacity.
+
+  Constraints:
+    - UniqueConstraint: UniqueConstraint(Column('datetime', DateTime(), table=<solar_data>, nullable=False), Column('region', String(), table=<solar_data>))
+    - PrimaryKeyConstraint: PrimaryKeyConstraint(Column('id', Integer(), table=<solar_data>, primary_key=True, nullable=False))
+
+  Indexen:
+    - idx_solar_year: columns=['year']
+    - idx_solar_day: columns=['day']
+    - idx_solar_weekday: columns=['weekday']
+    - idx_solar_hour: columns=['hour']
+    - idx_solar_datetime: columns=['datetime']
+    - idx_solar_month: columns=['month']
