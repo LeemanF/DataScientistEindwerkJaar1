@@ -27,7 +27,7 @@ update_or_install_if_missing("tqdm","4.60.0")
 
 # Pas na installatie importeren
 from tqdm import tqdm
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, UniqueConstraint, Index
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, UniqueConstraint, Index, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from settings import DB_FILE, SOLAR_FORECAST_DIR, WIND_FORECAST_DIR, BELPEX_DIR
@@ -48,7 +48,7 @@ class SolarData(Base):
     Unieke combinatie: datetime + region
     Index op de kolommen datetime, year, month, day, weekday en hour
     """
-    __tablename__ = "solar_data"
+    __tablename__ = "tbl_solar_data"
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, nullable=False)
     year = Column(Integer)
@@ -100,7 +100,7 @@ class WindData(Base):
     Unieke combinatie: datetime + region + offshoreonshore + gridconnectiontype
     Index op de kolommen datetime, year, month, day, weekday en hour
     """
-    __tablename__ = "wind_data"
+    __tablename__ = "tbl_wind_data"
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, nullable=False)
     year = Column(Integer)
@@ -162,15 +162,15 @@ class BelpexPrice(Base):
     Uniek veld: datetime
     Index op de kolommen year, month, day, weekday en hour
     """
-    __tablename__ = "belpex_prices"
+    __tablename__ = "tbl_belpex_prices"
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, nullable=False, unique=True)
     year = Column(Integer)
     month = Column(Integer)
-    weekday = Column(Integer)
     day = Column(Integer)
+    weekday = Column(Integer)
     hour = Column(Integer)
-    minute = Column(Integer)
+#    minute = Column(Integer)
     price_eur_per_mwh = Column(Float)
     __table_args__ = (
         Index('idx_belpex_year', 'year'),
@@ -182,6 +182,48 @@ class BelpexPrice(Base):
 # Creëer tabellen op basis van de klassen die afstammen van de klasse Base
 Base.metadata.create_all(engine)
 
+def create_views(engine):
+    """
+    Maakt SQL-views aan voor wind-, zonne-energie- en Belpex-gegevens.
+
+    Deze functie creëert drie views in de SQLite-database:
+    - qry_wind: aggregatie van gemeten en beschikbare windcapaciteit per datetime.
+    - qry_solar: aggregatie van gemeten en beschikbare zonnecapaciteit per datetime.
+    - qry_belpex: elektriciteitsprijs per datetime uit de Belpex-markt.
+
+    Views worden enkel aangemaakt als ze nog niet bestaan.
+
+    Parameters:
+        engine (sqlalchemy.engine.Engine): De SQLAlchemy-engine die met de database verbonden is.
+    """
+    with engine.connect() as conn:
+        conn.execute(text("""
+            CREATE VIEW IF NOT EXISTS v_wind AS
+            SELECT datetime, year, month, day, weekday, hour, minute,
+                   SUM(measured) AS measured_wind,
+                   SUM(monitoredcapacity) AS monitored_wind
+            FROM tbl_wind_data
+            GROUP BY datetime
+        """))
+
+        conn.execute(text("""
+            CREATE VIEW IF NOT EXISTS v_solar AS
+            SELECT datetime,
+                   SUM(measured) AS measured_solar,
+                   SUM(monitoredcapacity) AS monitored_solar
+            FROM tbl_solar_data
+            GROUP BY datetime
+        """))
+
+        conn.execute(text("""
+            CREATE VIEW IF NOT EXISTS v_belpex AS
+            SELECT datetime, year, month, day, hour,
+                   price_eur_per_mwh AS price_belpex
+            FROM tbl_belpex_prices
+            GROUP BY datetime
+        """))
+
+create_views(engine)
 
 def parse_record(record):
     """
@@ -322,7 +364,7 @@ def process_belpex_directory(path, batch_size=1000):
                         "month": dt.month,
                         "year": dt.year,
                         "hour": dt.hour,
-                        "minute": dt.minute,
+                        #"minute": dt.minute,
                         "weekday": dt.isoweekday()
                     }
                     batch.append(record)

@@ -150,11 +150,16 @@ De SQLite-database bevindt zich standaard in:
 `./Database/energie_data.sqlite`
 
 Tabellen:
-- [solar_data](Documents/solar_data.txt)
-- [wind_data](Documents/wind_data.txt)
-- [belpex_prices](Documents/belpex_prices.txt)
+- [tbl_solar_data](Documents/tbl_solar_data.txt)
+- [tbl_wind_data](Documents/tbl_wind_data.txt)
+- [tbl_belpex_prices](Documents/tbl_belpex_prices.txt)
 
 Elke tabel bevat indexen op datetime, jaar, maand, dag, weekdag en uur, en gebruikt unieke constraints om duplicaten te vermijden.
+
+Views:
+- `v_solar`
+- `v_wind`
+- `v_belpex`
 
 ---
 

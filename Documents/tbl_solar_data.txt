@@ -1,4 +1,4 @@
-Model: SolarData (tabel: solar_data)
+Model: SolarData (tabel: tbl_solar_data)
   - id
   - datetime
   - year
@@ -26,13 +26,13 @@ Model: SolarData (tabel: solar_data)
   - loadfactor: The percentage ratio between measured power generation and the total monitored power capacity.
 
   Constraints:
-    - UniqueConstraint: UniqueConstraint(Column('datetime', DateTime(), table=<solar_data>, nullable=False), Column('region', String(), table=<solar_data>))
-    - PrimaryKeyConstraint: PrimaryKeyConstraint(Column('id', Integer(), table=<solar_data>, primary_key=True, nullable=False))
+    - UniqueConstraint: UniqueConstraint(Column('datetime', DateTime(), table=<tbl_solar_data>, nullable=False), Column('region', String(), table=<tbl_solar_data>))
+    - PrimaryKeyConstraint: PrimaryKeyConstraint(Column('id', Integer(), table=<tbl_solar_data>, primary_key=True, nullable=False))
 
   Indexen:
+    - idx_solar_month: columns=['month']
     - idx_solar_year: columns=['year']
     - idx_solar_day: columns=['day']
     - idx_solar_weekday: columns=['weekday']
     - idx_solar_hour: columns=['hour']
     - idx_solar_datetime: columns=['datetime']
-    - idx_solar_month: columns=['month']

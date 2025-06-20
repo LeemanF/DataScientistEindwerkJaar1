@@ -1,4 +1,4 @@
-Model: WindData (tabel: wind_data)
+Model: WindData (tabel: tbl_wind_data)
   - id
   - datetime
   - year
@@ -29,13 +29,13 @@ Model: WindData (tabel: wind_data)
   - decrementalbidid: Elia has requested the wind park to reduce production below its maximum capacity during this QH. This is defined as the amount of Megawatt for a given quarter-hour (QH).Empty: No decremental bids were requested by Elia, and the wind park is not required to lower its production during this QH..Note: Elia does not publish any information around decremental bids on request of the parks owners themselves.
 
   Constraints:
-    - PrimaryKeyConstraint: PrimaryKeyConstraint(Column('id', Integer(), table=<wind_data>, primary_key=True, nullable=False))
-    - UniqueConstraint: UniqueConstraint(Column('datetime', DateTime(), table=<wind_data>, nullable=False), Column('region', String(), table=<wind_data>), Column('offshoreonshore', String(), table=<wind_data>), Column('gridconnectiontype', String(), table=<wind_data>))
+    - PrimaryKeyConstraint: PrimaryKeyConstraint(Column('id', Integer(), table=<tbl_wind_data>, primary_key=True, nullable=False))
+    - UniqueConstraint: UniqueConstraint(Column('datetime', DateTime(), table=<tbl_wind_data>, nullable=False), Column('region', String(), table=<tbl_wind_data>), Column('offshoreonshore', String(), table=<tbl_wind_data>), Column('gridconnectiontype', String(), table=<tbl_wind_data>))
 
   Indexen:
+    - idx_wind_year: columns=['year']
+    - idx_wind_datetime: columns=['datetime']
     - idx_wind_month: columns=['month']
     - idx_wind_day: columns=['day']
     - idx_wind_weekday: columns=['weekday']
     - idx_wind_hour: columns=['hour']
-    - idx_wind_year: columns=['year']
-    - idx_wind_datetime: columns=['datetime']
