@@ -23,8 +23,8 @@ import shutil
 from datetime import datetime
 import zipfile
 
-from .utils.package_tools import update_or_install_if_missing
-from .utils.decorators import retry_on_failure
+from src.utils.package_tools import update_or_install_if_missing
+from src.utils.decorators import retry_on_failure
 from settings import HTTP_TIMEOUT, DEFAULT_ATTEMPTS, RETRY_DELAY, BELPEX_DIR, SOLAR_FORECAST_DIR, WIND_FORECAST_DIR, BASE_DIR
 
 # Controleer en installeer indien nodig de vereiste modules
@@ -34,7 +34,7 @@ update_or_install_if_missing("selenium","4.1.0")
 update_or_install_if_missing("webdriver_manager","3.5.0")
 
 # Pas na installatie importeren
-from .utils.safe_requests import safe_requests_get
+from src.utils.safe_requests import safe_requests_get
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
