@@ -1,7 +1,7 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 20/06/2025
+Laatste update 06/07/2025
 
 Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -21,6 +21,8 @@ Ik koos voor een analyse van de productie van zonne- en windenergie, gecombineer
 Elia stelt via hun website gegevens beschikbaar:  
 - [Zonne-energieproductie](https://www.elia.be/nl/grid-data/productie/zonne-energieproductie)  
 - [Windenergieproductie](https://www.elia.be/nl/grid-data/productie-gegevens/windenergieproductie)
+
+`UPDATE 06/07/2025: Elia biedt niet langer de data aan via een gewone download op hun website en verplicht het gebruik van API`
 
 Omdat Elia ook een API aanbiedt, werd gekozen voor deze stabielere oplossing:  
 - [Dataset zonne-energie (ODS031)](https://opendata.elia.be/explore/dataset/ods031/information/)  
@@ -196,19 +198,19 @@ Project/
 │   │   ├── ...
 │   │   ├── 2025/
 │   │   │   ├── SolarForecast_Elia_20250425.json
-│   │   │   ├── ...
+│   │   │   └── ...
 │   └── WindForecast/                   # Windproductievoorspellingen en - metingen (JSON & ZIP)
 │       ├── WindForecast_2020.zip
 │       ├── ...
 │       ├── 2025/
 │       │   ├── WindForecast_Elia_20250425.json
-│       │   ├── ...
+│       │   └── ...
 ├── Database/
 │   └── energie_data.sqlite             # SQLite-database met gestructureerde gegevens
 ├── Documents/                          # Bijkomende documentatie van het project
 │   ├── Solar.json
 │   ├── Wind.json
-│   └── Images/                         # Afbeeldingen die gebruikt worden in README.md
+│   ├── Images/                         # Afbeeldingen die gebruikt worden in README.md
 │   │   ├── Banner.png
 │   │   └── ... 
 ├── Log/                                # Logbestanden gegenereerd door scripts
