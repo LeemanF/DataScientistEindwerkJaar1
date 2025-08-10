@@ -123,7 +123,7 @@ Het volledige proces van transformeren en verwerken wordt samengebracht in de fu
 ### Automatische update (`auto_update.py`)
 Het script [`auto_update.py`](auto_update.py) automatiseert zowel het ophalen als het verwerken van de data.  
 De functies `update_data()` en `to_sql()` worden hierbij binnen de contextmanager `DualLogger()` uitgevoerd.  
-Dit script kan via de Windows Taakplanner automatisch op maandelijkse basis uitgevoerd worden: zie [voorbeeld](Documents/Images/Taakplanner_resultaat.png)
+Dit script kan via de Windows Taakplanner automatisch op maandelijkse basis uitgevoerd worden: zie [voorbeeld instellingen](Documents/Images/Taakplanner.png)
 
 #### Logging (`dual_logger.py`)
 De klasse [`DualLogger()`](src/utils/dual_logger.py) zorgt ervoor dat alle console-uitvoer ook naar een logbestand geschreven wordt: zie [voorbeeld](Documents/log_2025-06-01.txt).  
