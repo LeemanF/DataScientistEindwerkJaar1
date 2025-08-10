@@ -493,7 +493,7 @@ def update_data(from_year=None, to_year=None, data_type='all'):
     if to_year is None:
         to_year = today.year
 
-    # Bepalen tot welke maand er data beschikbaar is. Pas vanaf de 4de dag is de info van de vorige maand beschikbaar.
+    # Bepalen tot welke maand er data beschikbaar is. Pas vanaf de 5de dag is de info van de vorige maand beschikbaar.
     if today.day <= 4:
         latest_available_month = today.month - 2
     else:
