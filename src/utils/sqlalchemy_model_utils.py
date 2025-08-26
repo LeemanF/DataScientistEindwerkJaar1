@@ -14,6 +14,14 @@ Voorbeeldgebruik:
     print(alle_modellen_en_kolommen(Base))
 """
 
+def get_all_subclasses(cls):
+    """Recursief alle subklassen ophalen."""
+    subclasses = []
+    for sub in cls.__subclasses__():
+        subclasses.append(sub)
+        subclasses.extend(get_all_subclasses(sub))
+    return subclasses
+
 def alle_modellen_en_kolommen(base_class):
     """
     Genereert een overzicht van alle SQLAlchemy-modellen die afstammen van een gegeven basisklasse,
@@ -42,8 +50,8 @@ def alle_modellen_en_kolommen(base_class):
     uitvoer = []
 
     # Doorloop alle subklassen (modellen) die van base_class zijn afgeleid
-    for cls in base_class.__subclasses__():
-        # Controleer of het een geldig SQLAlchemy-model is met een gekoppelde tabel
+    for cls in get_all_subclasses(base_class):
+        # Alleen concrete modellen met een __tablename__
         if hasattr(cls, '__tablename__') and hasattr(cls, '__table__'):
             uitvoer.append(f"Model: {cls.__name__} (tabel: {cls.__tablename__})")
 
