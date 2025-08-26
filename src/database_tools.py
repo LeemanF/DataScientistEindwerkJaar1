@@ -40,15 +40,22 @@ engine = create_engine(f"sqlite:///{DB_FILE}")
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# Models
-class SolarData(Base):
+# Abastract model als basis voor SolarData en WindData
+class EnergyBase(Base):
     """
-    SQLAlchemy-model voor het opslaan van zonne-energiegegevens in de database.
-    
-    Unieke combinatie: datetime + region
-    Index op de kolommen datetime, year, month, day, weekday en hour
+    Abstracte basis voor energieproductiegegevens (zonne-energie en windenergie) in de database.
+
+    Deze klasse definieert alle gemeenschappelijke kolommen en indexen die zowel
+    SolarData als WindData gebruiken. Het wordt niet direct als tabel aangemaakt,
+    maar dient als superclass voor specifieke energiemodellen.
+
+    Gebruik:
+        - SolarData(EnergyBase)
+        - WindData(EnergyBase) met extra kolommen voor offshore/onshore, gridtype en decremental bids.
     """
-    __tablename__ = "tbl_solar_data"
+
+    __abstract__ = True  # geen eigen tabel aanmaken
+
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, nullable=False)
     year = Column(Integer)
@@ -57,16 +64,18 @@ class SolarData(Base):
     weekday = Column(Integer)
     hour = Column(Integer)
     minute = Column(Integer)
+
     resolutioncode = Column(String, info={"beschrijving": "Length of the time interval expressed in compliance with ISO 8601."})
     region = Column(String, info={"beschrijving": "Location of the production unit."})
     measured = Column(Float, info={"beschrijving": "The value running average measured for the reported time interval."})
     monitoredcapacity = Column(Float, info={"beschrijving": "Total available production capacity."})
+ 
     mostrecentforecast = Column(Float, info={"beschrijving": "Most recently forecasted volume."})
     mostrecentconfidence10 = Column(Float, 
                                     info={"beschrijving": "Most recently forecasted volume with a probability of less than 10% that a lower volume will be produced."})
     mostrecentconfidence90 = Column(Float, 
                                     info={"beschrijving": "Most recently forecasted volume with a probability of less than 10% that a higher volume will be produced."})
-    dayahead11hforecast = Column(Float, info={"beschrijving": "Day-ahead forecasted volume published at 11AM. "})
+    dayahead11hforecast = Column(Float, info={"beschrijving": "Day-ahead forecasted volume published at 11AM."})
     dayahead11hconfidence10 = Column(Float, 
                                      info={"beschrijving": "Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced, "
                                      "published at 11AM."})
@@ -83,6 +92,17 @@ class SolarData(Base):
     weekaheadconfidence90 = Column(Float, 
                                    info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced."})
     loadfactor = Column(Float, info={"beschrijving": "The percentage ratio between measured power generation and the total monitored power capacity."})
+
+# Models
+class SolarData(EnergyBase):
+    """
+    SQLAlchemy-model voor het opslaan van zonne-energiegegevens in de database.
+    
+    Unieke combinatie: datetime + region
+    Index op de kolommen datetime, year, month, day, weekday en hour
+    """
+    __tablename__ = "tbl_solar_data"
+
     __table_args__ = (
         UniqueConstraint('datetime', 'region', name='_datetime_region_uc'),
         Index('idx_solar_datetime', 'datetime'),
@@ -93,7 +113,7 @@ class SolarData(Base):
         Index('idx_solar_hour', 'hour'),
     )
 
-class WindData(Base):
+class WindData(EnergyBase):
     """
     SQLAlchemy-model voor het opslaan van windenergiegegevens in de database.
     
@@ -101,50 +121,16 @@ class WindData(Base):
     Index op de kolommen datetime, year, month, day, weekday en hour
     """
     __tablename__ = "tbl_wind_data"
-    id = Column(Integer, primary_key=True)
-    datetime = Column(DateTime, nullable=False)
-    year = Column(Integer)
-    month = Column(Integer)
-    day = Column(Integer)
-    weekday = Column(Integer)
-    hour = Column(Integer)
-    minute = Column(Integer)
-    resolutioncode = Column(String, info={"beschrijving": "Length of the time interval expressed in compliance with ISO 8601."})
+
     offshoreonshore = Column(String, info={"beschrijving": "Indicates whether the wind farm is offshore or onshore."})
-    region = Column(String, info={"beschrijving": "Location of the production unit."})
     gridconnectiontype = Column(String, 
                                 info={"beschrijving": "Indicates whether the production unit is connected to the Elia grid or to a DSO grid."})
-    measured = Column(Float, info={"beschrijving": "The value running average measured for the reported time interval."})
-    monitoredcapacity = Column(Float, info={"beschrijving": "Total available production capacity."})
-    mostrecentforecast = Column(Float, info={"beschrijving": "Most recently forecasted volume."})
-    mostrecentconfidence10 = Column(Float, 
-                                    info={"beschrijving": "Most recently forecasted volume with a probability of less than 10% that a lower volume will be produced."})
-    mostrecentconfidence90 = Column(Float, 
-                                    info={"beschrijving": "Most recently forecasted volume with a probability of less than 10% that a higher volume will be produced."})
-    dayahead11hforecast = Column(Float, 
-                                 info={"beschrijving": "Day-ahead forecasted volume published at 11AM. "})
-    dayahead11hconfidence10 = Column(Float, 
-                                     info={"beschrijving": "Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced, "
-                                     "published at 11AM. "})
-    dayahead11hconfidence90 = Column(Float, 
-                                     info={"beschrijving": "Day-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced, "
-                                     "published at 11AM."})
-    dayaheadforecast = Column(Float, 
-                              info={"beschrijving": "Day-ahead forecasted volume to be produced."})
-    dayaheadconfidence10 = Column(Float, 
-                                  info={"beschrijving": "Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced."})
-    dayaheadconfidence90 = Column(Float, info={"beschrijving": "Forecasted volume with a probability of less than 10% that a higher volume will be produced."})
-    weekaheadforecast = Column(Float, info={"beschrijving": "Week-ahead forecasted volume."})
-    weekaheadconfidence10 = Column(Float, 
-                                   info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced."})
-    weekaheadconfidence90 = Column(Float, 
-                                   info={"beschrijving": "Week-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced."})
-    loadfactor = Column(Float, info={"beschrijving": "The percentage ratio between measured power generation and the total monitored power capacity."})
     decrementalbidid = Column(String, 
                               info={"beschrijving": "Elia has requested the wind park to reduce production below its maximum capacity during this QH. "
                               "This is defined as the amount of Megawatt for a given quarter-hour (QH).Empty: No decremental bids were requested by Elia, "
                               "and the wind park is not required to lower its production during this QH..Note: Elia does not publish any information around "
                               "decremental bids on request of the parks owners themselves."})
+
     __table_args__ = (
         UniqueConstraint('datetime', 'region', 'offshoreonshore', 'gridconnectiontype', name='_datetime_region_offshore_connectiontype_uc'),
         Index('idx_wind_datetime', 'datetime'),
@@ -385,8 +371,7 @@ def process_belpex_directory(path, batch_size=1000):
 
 def to_sql(data_type="all"):
     """
-    Laadt gegevens vanuit vaste mappenstructuur en schrijft deze naar de SQLite-database,
-    afhankelijk van het opgegeven type data.
+    Laadt gegevens vanuit vaste mappenstructuur en schrijft deze naar de SQLite-database.
     Je kunt zelf kiezen welke datasets verwerkt worden:
         - solar: Verwerk zonne-energie (JSON-bestanden)
         - wind: Verwerk windenergie (JSON-bestanden)
@@ -397,25 +382,28 @@ def to_sql(data_type="all"):
     - data_type (str): 'solar', 'wind', 'belpex' of 'all' — bepaalt welke gegevens worden verwerkt.
     """
 
+    # Per datatype definiëren we path, model, func en label
+    DATASETS = {
+        "solar": (SOLAR_FORECAST_DIR, SolarData, process_directory, "zonne-energie"),
+        "wind": (WIND_FORECAST_DIR, WindData, process_directory, "windenergie"),
+        "belpex": (BELPEX_DIR, BelpexPrice, process_belpex_directory, "Belpexprijzen"),
+    }
+
     try:
-        if data_type in ("solar", "all"):
-            try:
-                process_directory(SOLAR_FORECAST_DIR, SolarData)
-            except Exception as e:
-                print(f"❌ Fout bij verwerken data zonne-energie: {e}")
+        types = DATASETS.keys() if data_type == "all" else [data_type]
+        for t in types:
+            if t not in DATASETS:
+                print(f"⚠️ Onbekend datatype: {t}")
+                continue
 
-        if data_type in ("wind", "all"):
+            path, model, func, label = DATASETS[t]
             try:
-                process_directory(WIND_FORECAST_DIR, WindData)
+                if func == process_directory:
+                    func(path, model)
+                else:
+                    func(path)
             except Exception as e:
-                print(f"❌ Fout bij verwerken data windenergie: {e}")
-
-        if data_type in ("belpex", "all"):
-            try:
-                process_belpex_directory(BELPEX_DIR)
-            except Exception as e:
-                print(f"❌ Fout bij verwerken data Belpexprijzen: {e}")
-
+                print(f"❌ Fout bij verwerken data {label}: {e}")
     except KeyboardInterrupt:
         print("\n🛑 Script onderbroken door gebruiker.")
     except Exception as e:
