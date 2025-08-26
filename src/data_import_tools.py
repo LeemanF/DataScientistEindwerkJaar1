@@ -44,11 +44,11 @@ from selenium.webdriver.support import expected_conditions as EC
 # ----------- Data Import Functies -----------
 
 @retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
-def import_wind(year,month):
+def import_forecast(year, month, url, year_folder, prefix, extra_filters=None):
     """
-    Download en sla windforecast-data op voor een opgegeven maand uit de Elia Open Data API.
+    Download en sla forecast-data (wind of zon) op voor een opgegeven maand uit de Elia Open Data API.
 
-    Deze functie haalt voor elke dag van de opgegeven maand de windvoorspellingsgegevens en metingen op
+    Deze functie haalt voor elke dag van de opgegeven maand de voorspellingen en metingen op
     via de Elia API en slaat deze lokaal op in afzonderlijke JSON-bestanden per dag, per jaar gestructureerd.
 
     Indien er een netwerkprobleem of andere tijdelijke fout optreedt tijdens het ophalen,
@@ -57,17 +57,23 @@ def import_wind(year,month):
     Parameters:
     - year (int): Het jaar waarvoor data opgehaald moet worden.
     - month (int): De maand waarvoor data opgehaald moet worden (1 t.e.m. 12).
+    - url (str): Basis-URL van de Elia API (bijv. wind of solar dataset).
+    - year_folder (str): Map waarin de JSON-bestanden per jaar moeten worden opgeslagen.
+    - prefix (str): Prefix voor de bestandsnamen, bijv. 'WindForecast_Elia' of 'SolarForecast_Elia'.
+    - extra_filters (list[str], optioneel): Extra API-filters zoals ['region:"Belgium"'].
 
-    Opmerkingen:
-    - Bestanden worden opgeslagen in: Data\WindForecast\<jaar>\WindForecast_Elia_YYYYMMDD.json
-    - Bestanden die al bestaan worden niet opnieuw gedownload.
+    Werking:
+    - Controleert per dag of het JSON-bestand al bestaat; zo ja, deze dag wordt overgeslagen.
+    - Haalt records op in batches van 100 (beperking van Elia API).
+    - Print status per dag en per batch.
+    - Slaat de records op in een JSON-bestand met naam <prefix>_YYYYMMDD.json.
+    - Print of het bestand succesvol is opgeslagen of dat er geen data beschikbaar was.
     """
 
     # Bepaal het aantal dagen in de gevraagde maand en jaar
     _, num_days = calendar.monthrange(year, month)
 
-    # Stel pad samen voor jaarspecifieke map en maak deze aan indien nodig
-    year_folder = os.path.join(WIND_FORECAST_DIR, str(year))
+    # Maak de jaarmap aan indien nodig
     os.makedirs(year_folder, exist_ok=True)
 
     # Loop over elke dag van de maand
@@ -76,7 +82,7 @@ def import_wind(year,month):
         date_str = f"{year}-{month:02d}-{day:02d}"
         
         # Bestandsnaam en volledig pad genereren voor output
-        output_filename = f"WindForecast_Elia_{year}{month:02d}{day:02d}.json"
+        output_filename = f"{prefix}_{year}{month:02d}{day:02d}.json"
         output_path = os.path.join(year_folder, output_filename)
 
         # Indien het bestand reeds bestaat, sla deze dag over
@@ -86,110 +92,32 @@ def import_wind(year,month):
 
         print(f"      ⬇️ Ophalen: {output_filename}")
 
-        # Basis-URL van de Elia API voor winddata
-        url = "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods031/records"
         all_records = []
         limit = 100  # Elia legt een beperking op van 100 records per call
         offset = 0
 
         while True:
-            # API-parameters inclusief filter op specifieke dag
+            # Stel API-filters samen
+            refine = [f'datetime:"{date_str}"']  # Filter op specifieke dag
+            if extra_filters:
+                refine.extend(extra_filters)     # Extra filters zoals vb. Belgische regio
+
+            # API-parameters inclusief filter
             params = {
                 "order_by": "datetime",          # Sorteer op tijd
                 "limit": limit,                  # Aantal records per batch
                 "offset": offset,                # Startpunt voor batch
-                "refine": [
-                    f'datetime:"{date_str}"'     # Filter op specifieke dag
-                ]
-            }
-
-            # Voer het verzoek uit via de veilige request-functie met retry
-            response = safe_requests_get(url, params=params,tries=DEFAULT_ATTEMPTS,delay=RETRY_DELAY,timeout=HTTP_TIMEOUT)
-
-            # Extra controle op HTTP-status (niet echt nodig door raise_for_status(), maar extra informatief)
-            if response.status_code != 200:
-                print(f"      ❌ Fout bij {date_str} (offset {offset}): {response.status_code}")
-                break
-
-            # Haal JSON-gegevens op, neem alleen 'results' (records)
-            data = response.json().get("results", [])
-            if not data:
-                break  # Geen data meer, stop loop
-
-            all_records.extend(data)
-            if offset != 0: 
-                print(f'      ⏳ De eerste {offset} records werden binnengehaald.', end='\r')
-            offset += limit
-
-        # Als er data gevonden werd, sla deze op in JSON-bestand
-        if all_records:
-            with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(all_records, f, ensure_ascii=False, indent=2)
-            print(f"      ✅ Opgeslagen ({len(all_records)} records): {output_filename}")
-        else:
-            print(f"      ❌ Geen data voor {date_str}")
-
-@retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
-def import_solar(year,month):
-    """
-    Download en sla zonneforecast-data op voor een opgegeven maand uit de Elia Open Data API.
-
-    Deze functie haalt voor elke dag van de opgegeven maand de zonvoorspellingsgegevens en metingen op
-    via de Elia API en slaat deze lokaal op in afzonderlijke JSON-bestanden per dag, per jaar gestructureerd.
-
-    Parameters:
-    - year (int): Het jaar waarvoor data opgehaald moet worden.
-    - month (int): De maand waarvoor data opgehaald moet worden (1 t.e.m. 12).
-
-    Opmerkingen:
-    - Bestanden worden opgeslagen in: Data\SolarForecast\<jaar>\SolarForecast_Elia_YYYYMMDD.json
-    - Bestanden die al bestaan worden niet opnieuw opgehaald.
-    - Enkel records voor de regio "Belgium" worden opgehaald om te vermijden dat er dubbele data is.
-    """
-
-    # Bepaal het aantal dagen in de gevraagde maand en jaar
-    _, num_days = calendar.monthrange(year, month)
-
-    # Stel pad samen voor jaarspecifieke map en maak deze aan indien nodig
-    year_folder = os.path.join(SOLAR_FORECAST_DIR, str(year))
-    os.makedirs(year_folder, exist_ok=True)
-
-    # Loop over elke dag van de maand
-    for day in range(1, num_days + 1):
-        # Datum omzetten naar formaat YYYY-MM-DD (vereist door Elia API)
-        date_str = f"{year}-{month:02d}-{day:02d}"
-        
-        # Bestandsnaam en volledig pad genereren voor output
-        output_filename = f"SolarForecast_Elia_{year}{month:02d}{day:02d}.json"
-        output_path = os.path.join(year_folder, output_filename)
-
-        # Indien het bestand reeds bestaat, sla deze dag over
-        if os.path.exists(output_path):
-            #print(f"✅ Bestand bestaat al: {output_filename}")
-            continue
-
-        print(f"      ⬇️ Ophalen: {output_filename}")
-
-        # Basis-URL van de Elia API voor zonnedata
-        url = "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods032/records"
-        all_records = []
-        limit = 100  # Elia legt een beperking op van 100 records per call
-        offset = 0
-
-        while True:
-            # API-parameters inclusief filter op specifieke dag en regio
-            params = {
-                "order_by": "datetime",          # Sorteer op tijd
-                "limit": limit,                  # Aantal records per batch
-                "offset": offset,                # Startpunt voor batch
-                "refine": [
-                    f'datetime:"{date_str}"',    # Filter op specifieke dag
-                    'region:"Belgium"'           # Filter op Belgische regio
-                ]
+                "refine": refine
             }
 
              # Voer het verzoek uit via de veilige request-functie met retry
-            response = safe_requests_get(url, params=params,tries=DEFAULT_ATTEMPTS,delay=RETRY_DELAY,timeout=HTTP_TIMEOUT)
+            response = safe_requests_get(
+                url,
+                params=params,
+                tries=DEFAULT_ATTEMPTS,
+                delay=RETRY_DELAY,
+                timeout=HTTP_TIMEOUT
+            )
 
             # Extra controle op HTTP-status (niet echt nodig door raise_for_status(), maar extra informatief)
             if response.status_code != 200:
@@ -202,7 +130,9 @@ def import_solar(year,month):
                 break  # Geen data meer, stop loop
 
             all_records.extend(data)
-            if offset != 0: 
+
+            # Print voortgang als er batches zijn
+            if offset != 0:
                 print(f'      ⏳ De eerste {offset} records werden binnengehaald.', end='\r')
             offset += limit
 
@@ -213,6 +143,36 @@ def import_solar(year,month):
             print(f"      ✅ Opgeslagen ({len(all_records)} records): {output_filename}")
         else:
             print(f"      ❌ Geen data voor {date_str}")
+
+def import_wind(year, month):
+    """
+    Download en sla windforecast-data op voor een opgegeven maand via `import_forecast`.
+
+    Parameters:
+    - year (int): Jaar van de data.
+    - month (int): Maand van de data.
+
+    Bestanden worden opgeslagen in: <WIND_FORECAST_DIR>/<jaar>/WindForecast_Elia_YYYYMMDD.json
+    """
+
+    url = "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods031/records"
+    folder = os.path.join(WIND_FORECAST_DIR, str(year))
+    import_forecast(year, month, url, folder, "WindForecast_Elia")
+
+def import_solar(year, month):
+    """
+    Download en sla zonneforecast-data op voor een opgegeven maand via `import_forecast`.
+
+    Parameters:
+    - year (int): Jaar van de data.
+    - month (int): Maand van de data.
+
+    Bestanden worden opgeslagen in: <SOLAR_FORECAST_DIR>/<jaar>/SolarForecast_Elia_YYYYMMDD.json
+    """
+
+    url = url = "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods032/records"
+    folder = os.path.join(SOLAR_FORECAST_DIR, str(year))
+    import_forecast(year, month, url, folder, "SolarForecast_Elia", extra_filters=['region:"Belgium"'])
 
 @retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
 def import_belpex(year, month):
@@ -476,8 +436,8 @@ def update_data(from_year=None, to_year=None, data_type='all'):
     """
     Update wind-, zonne- en/of Belpex-data tussen opgegeven jaartallen.
     Hierbij worden eerste de bestaande zip-bestanden uitgepakt.
-    Vervolgens wordt de recenste data opgehaald bij Elia en Elexys.
-    Ten slotte wordt nieuwe data toegevoegd aan de zip-bestanden
+    Vervolgens wordt de recentste data opgehaald bij Elia en Elexys.
+    Ten slotte wordt nieuwe data toegevoegd aan de zip-bestanden.
     
     Parameters:
     - from_year (int, optional): Startjaar. Default = vorig jaar.
@@ -510,12 +470,19 @@ def update_data(from_year=None, to_year=None, data_type='all'):
 
     # Altijd eerst de huidige bestanden unzippen als er gekozen werd voor 'wind' of 'solar'
     if data_type in ('wind', 'solar', 'all'):
-        print("\n📦Unzippen van de forecast-data...")
+        print("\n📦 Unzippen van de forecast-data...")
         unzip_all_forecast_zips()
 
+    # Process map (data_type → functie + label)
+    import_funcs = {
+        "wind":   (import_wind,   "winddata"),
+        "solar":  (import_solar,  "zonnedata"),
+        "belpex": (import_belpex, "Belpex-data"),
+    }
 
     print(f"📅 Start met ophalen data voor periode {from_year}-{to_year}")
     counter = 0
+
     # Loop over jaren en maanden
     for year in range(from_year, to_year + 1):
         for month in range(1, 13):
@@ -524,26 +491,15 @@ def update_data(from_year=None, to_year=None, data_type='all'):
 
             print(f"   📅 Ophalen data voor {year}-{month:02d} ({data_type})")
 
-            if data_type in ('wind', 'all'):
-                try:
-                    import_wind(year, month)
-                    counter += 1
-                except Exception as e:
-                    print(f"❌ Fout bij ophalen winddata {year}-{month:02d}: {e}")
+            # Loop over process map
+            for dtype, (func, label) in import_funcs.items():
+                if data_type in (dtype, "all"):
+                    try:
+                        func(year, month)
+                        counter += 1
+                    except Exception as e:
+                        print(f"❌ Fout bij ophalen {label} {year}-{month:02d}: {e}")
 
-            if data_type in ('solar', 'all'):
-                try:
-                    import_solar(year, month)
-                    counter += 1
-                except Exception as e:
-                    print(f"❌ Fout bij ophalen zonndata {year}-{month:02d}: {e}")
-
-            if data_type in ('belpex', 'all'):
-                try:
-                    import_belpex(year, month)
-                    counter += 1
-                except Exception as e:
-                    print(f"❌ Fout bij ophalen Belpex-data {year}-{month:02d}: {e}")
     if counter == 0:
         print("   ❌ Geen data beschikbaar.")
 
