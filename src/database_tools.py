@@ -173,9 +173,9 @@ def create_views(engine):
     Maakt SQL-views aan voor wind-, zonne-energie- en Belpex-gegevens.
 
     Deze functie creëert drie views in de SQLite-database:
-    - qry_wind: aggregatie van gemeten en beschikbare windcapaciteit per datetime.
-    - qry_solar: aggregatie van gemeten en beschikbare zonnecapaciteit per datetime.
-    - qry_belpex: elektriciteitsprijs per datetime uit de Belpex-markt.
+    - v_wind: aggregatie van gemeten en beschikbare windcapaciteit per datetime.
+    - v_solar: aggregatie van gemeten en beschikbare zonnecapaciteit per datetime.
+    - v_belpex: elektriciteitsprijs per datetime uit de Belpex-markt.
 
     Views worden enkel aangemaakt als ze nog niet bestaan.
 
