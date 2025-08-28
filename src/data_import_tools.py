@@ -529,6 +529,33 @@ def unzip_all_forecast_zips(forecast_types=["SolarForecast", "WindForecast"]):
 
 # ----------- Bijwerken van de data-bestanden -----------
 
+def get_latest_available_year_month(today=None):
+    """
+    Bepaal het meest recente jaar/maand waarvoor data beschikbaar is.
+    Pas vanaf de 5de dag is de info van de vorige maand beschikbaar.
+
+    Parameters:
+    - today (datetime, optional): Referentiedatum. Default = vandaag.
+
+    Returns:
+    - tuple[int, int]: (jaar, maand) meest recente beschikbare data.
+    """
+
+    if today is None:
+        today = datetime.today()
+
+    if today.day <= 4:
+        latest_available_month = today.month - 2
+    else:
+        latest_available_month = today.month - 1
+
+    latest_available_year = today.year
+    if latest_available_month <= 0:
+        latest_available_month += 12
+        latest_available_year -= 1
+
+    return latest_available_year, latest_available_month
+
 def update_data(from_year=None, to_year=None, data_type='all'):
     """
     Update wind-, zonne- en/of Belpex-data tussen opgegeven jaartallen.
@@ -550,16 +577,8 @@ def update_data(from_year=None, to_year=None, data_type='all'):
     if to_year is None:
         to_year = today.year
 
-    # Bepalen tot welke maand er data beschikbaar is. Pas vanaf de 5de dag is de info van de vorige maand beschikbaar.
-    if today.day <= 4:
-        latest_available_month = today.month - 2
-    else:
-        latest_available_month = today.month - 1
-
-    latest_available_year = today.year
-    if latest_available_month <= 0:
-        latest_available_month += 12
-        latest_available_year -= 1
+    # Bepaal de laatste beschikbare maand en jaar
+    latest_available_year, latest_available_month = get_latest_available_year_month(today)
 
     allowed_types = {'wind', 'solar', 'belpex', 'all'}
     if data_type not in allowed_types:
