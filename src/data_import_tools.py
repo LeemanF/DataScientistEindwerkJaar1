@@ -203,6 +203,149 @@ def import_solar(year, month):
     folder = os.path.join(SOLAR_FORECAST_DIR, str(year))
     import_forecast(year, month, url, folder, "SolarForecast_Elia", extra_filters=['region:"Belgium"'])
 
+def get_belpex_date_range(year, month):
+    """
+    Bepaal de 'from' en 'until' datums voor de Belpex-export.
+
+    Parameters:
+    - year (int): Het jaar waarvoor de datums bepaald worden.
+    - month (int): De maand waarvoor de datums bepaald worden.
+
+    Returns:
+    - tuple[str, str]: Een tuple met (from_date, until_date) in formaat dd/mm/yyyy.
+    """
+
+    from_date = f"01/{month:02d}/{year}"
+
+    # Bepaal de eerste dag van de volgende maand voor de 'until_date'
+    if month == 12:
+        next_month = 1
+        next_year = year + 1
+    else:
+        next_month = month + 1
+        next_year = year
+    next_month_first_day = datetime(next_year, next_month, 1)
+    until_date = next_month_first_day.strftime("%d/%m/%Y")
+
+    return from_date, until_date
+
+def prepare_download_dir(base_dir):
+    """
+    Maak de downloadmap aan en verwijder eventueel oud bestand 'BelpexFilter.csv'.
+
+    Parameters:
+    - base_dir (str): Het basispad naar de downloadmap.
+
+    Returns:
+    - str: Het pad naar de downloadmap (als string).
+    """
+
+    download_dir = str(base_dir)
+    os.makedirs(download_dir, exist_ok=True)
+
+    filter_path = os.path.join(download_dir, "BelpexFilter.csv")
+    if os.path.exists(filter_path):
+        os.remove(filter_path)
+        print("      ❌ Niet hernoemde bestand BelpexFilter.csv werd verwijderd.")
+
+    return download_dir
+
+def setup_chrome_driver(download_dir):
+    """
+    Configureer een headless Chrome-driver voor automatisch downloaden.
+
+    Parameters:
+    - download_dir (str): Het pad waar downloads automatisch opgeslagen moeten worden.
+
+    Returns:
+    - webdriver.Chrome: Een geconfigureerde headless Chrome-driver.
+    """
+
+    options = Options()
+    prefs = {
+        "download.default_directory": download_dir,
+        "download.prompt_for_download": False,
+        "directory_upgrade": True,
+        "safebrowsing.enabled": True
+    }
+    options.add_argument("--headless")  # Chrome wordt onzichtbaar geopend
+    options.add_experimental_option("prefs", prefs)
+    return webdriver.Chrome(options=options)
+
+def download_belpex_csv(driver, from_date, until_date):
+    """
+    Automatiseer het invullen van datums en exporteren van de Belpex-data naar CSV.
+
+    Parameters:
+    - driver (webdriver.Chrome): De actieve Selenium-webdriver.
+    - from_date (str): Startdatum in formaat dd/mm/yyyy.
+    - until_date (str): Einddatum in formaat dd/mm/yyyy.
+
+    Returns:
+    - None
+    """
+
+    # Ga naar de website
+    driver.get("https://my.elexys.be/MarketInformation/SpotBelpex.aspx")
+
+    # Wacht op beschikbaarheid van datumvelden
+    wait = WebDriverWait(driver, 20)
+    wait.until(EC.presence_of_element_located((By.ID, "contentPlaceHolder_fromASPxDateEdit_I")))
+
+    # Vul de datums in
+    from_input = driver.find_element(By.ID, "contentPlaceHolder_fromASPxDateEdit_I")
+    until_input = driver.find_element(By.ID, "contentPlaceHolder_untilASPxDateEdit_I")
+
+    print(f"      📆 Vul 'From' datum in: {from_date}")
+    from_input.clear()
+    from_input.send_keys(from_date)
+
+    print(f"      📆 Vul 'Until' datum in: {until_date}")
+    until_input.clear()
+    until_input.send_keys(until_date)
+
+    # Klik op "Show data"
+    show_data_button = driver.find_element(By.ID, "contentPlaceHolder_refreshBelpexCustomButton_I")
+    print("      🚀 Klik op 'Show data'")
+    driver.execute_script("arguments[0].click();", show_data_button)
+
+    # Wacht tot de resultaten zichtbaar zijn in de tabel
+    print("      ⏳ Wacht op zoekresultaten...")
+    wait.until(EC.presence_of_element_located((By.ID, "contentPlaceHolder_belpexFilterGrid_DXMainTable")))
+    time.sleep(5)  # Extra wachttijd voor stabiliteit
+
+    # Klik op de juiste export-div
+    print("      🚀 Klik op 'Exporteer naar CSV'")
+    export_button_div = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_contentPlaceHolder_GridViewExportUserControl1_csvExport")))
+    driver.execute_script("arguments[0].click();", export_button_div)
+
+    # Wacht op de download
+    print("      ⏳ Wacht op download...")
+    time.sleep(5)
+
+def rename_belpex_file(download_dir, year, month):
+    """
+    Hernoem BelpexFilter.csv naar Belpex_YYYYMM.csv indien download gelukt is.
+
+    Parameters:
+    - download_dir (str): Het pad waar de download zich bevindt.
+    - year (int): Het jaar van de download.
+    - month (int): De maand van de download.
+
+    Returns:
+    - None
+    """
+
+    new_filename = f"Belpex_{year}{month:02d}.csv"
+    filter_path = os.path.join(download_dir, "BelpexFilter.csv")
+    new_path = os.path.join(download_dir, new_filename)
+
+    if os.path.exists(filter_path):
+        os.rename(filter_path, new_path)
+        print(f"      ✅ Gedownload en hernoemd naar: {new_filename}")
+    else:
+        print("      ❌ Download mislukt.")
+
 @retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
 def import_belpex(year, month):
     """
@@ -221,101 +364,26 @@ def import_belpex(year, month):
     - Downloadlocatie: ./Data/Belpex/Belpex_YYYYMM.csv
     - Indien het bestand reeds bestaat, wordt het niet opnieuw gedownload.
     """
-    # Stel de 'from'-datum in op de eerste dag van de maand (dd/mm/yyyy)
-    from_date = f"01/{month:02d}/{year}"
-
-    # Bepaal de eerste dag van de volgende maand voor de 'until_date'
-    if month == 12:
-        next_month = 1
-        next_year = year + 1
-    else:
-        next_month = month + 1
-        next_year = year
-
-    # De eerste dag van de volgende maand
-    next_month_first_day = datetime(next_year, next_month, 1)
-    until_date = next_month_first_day.strftime("%d/%m/%Y")
-
-    # Downloadpad instellen en aanmaken indien nodig
-    download_dir = str(BELPEX_DIR)
-    os.makedirs(download_dir, exist_ok=True)
-
-    # Setup voor Chrome
-    options = Options()
-    prefs = {
-        "download.default_directory": download_dir,
-        "download.prompt_for_download": False,
-        "directory_upgrade": True,
-        "safebrowsing.enabled": True
-    }
-    options.add_argument("--headless")  # Chrome wordt onzichtbaar geopend
-    options.add_experimental_option("prefs", prefs)
-    driver = webdriver.Chrome(options=options)
-
-
-    # Niet hernoemde bestanden opkuisen
-    if "BelpexFilter.csv" in os.listdir(download_dir):
-        os.remove(os.path.join(download_dir, "BelpexFilter.csv"))
-        print("      ❌ Niet hernoemde bestand BelpexFilter.csv werd verwijderd.")
-
+    
+    from_date, until_date = get_belpex_date_range(year, month)
+    download_dir = prepare_download_dir(BELPEX_DIR)
     new_filename = f"Belpex_{year}{month:02d}.csv"
-
 
     # Indien het bestand reeds bestaat, sla deze maand over
     if new_filename in os.listdir(download_dir):
         #print(f"✅ Bestand bestaat al: {new_filename}")
-        pass
-    else:
-        # Ga naar de website
-        driver.get("https://my.elexys.be/MarketInformation/SpotBelpex.aspx")
+        return
+    
+    driver = setup_chrome_driver(download_dir)
 
+    try:
         print(f"      ⬇️ Starten met het opvragen Belpex-gegevens periode {month}/{year}")
-        
-        # Wacht op beschikbaarheid van datumvelden
-        wait = WebDriverWait(driver, 20)
-        wait.until(EC.presence_of_element_located((By.ID, "contentPlaceHolder_fromASPxDateEdit_I")))
-
-        # Vul de datums in
-        from_input = driver.find_element(By.ID, "contentPlaceHolder_fromASPxDateEdit_I")
-        until_input = driver.find_element(By.ID, "contentPlaceHolder_untilASPxDateEdit_I")
-
-        print(f"      📆 Vul 'From' datum in: {from_date}")
-        from_input.clear()
-        from_input.send_keys(from_date)
-
-        print(f"      📆 Vul 'Until' datum in: {until_date}")
-        until_input.clear()
-        until_input.send_keys(until_date)
-
-        # Klik op "Show data"
-        show_data_button = driver.find_element(By.ID, "contentPlaceHolder_refreshBelpexCustomButton_I")
-        print("      🚀 Klik op 'Show data'")
-        driver.execute_script("arguments[0].click();", show_data_button)
-
-        # Wacht tot de resultaten zichtbaar zijn in de tabel
-        print("      ⏳ Wacht op zoekresultaten...")
-        wait.until(EC.presence_of_element_located((By.ID, "contentPlaceHolder_belpexFilterGrid_DXMainTable")))
-        time.sleep(5)  # Extra wachttijd voor stabiliteit
-
-        # Klik op de juiste export-div
-        print("      🚀 Klik op 'Exporteer naar CSV'")
-        export_button_div = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_contentPlaceHolder_GridViewExportUserControl1_csvExport")))
-        driver.execute_script("arguments[0].click();", export_button_div)
-
-        # Wacht op de download
-        print("      ⏳ Wacht op download...")
-        time.sleep(5)
-
-        # Als het bestand bestaat, hernoem het bestand naar 'Belpex_JJJJMM.csv' (bijv. Belpex_202401.csv)
-        if "BelpexFilter.csv" in os.listdir(download_dir):
-            new_filename = f"Belpex_{year}{month:02d}.csv"
-            os.rename(os.path.join(download_dir, "BelpexFilter.csv"), os.path.join(download_dir, new_filename))
-            print(f"      ✅ Gedownload en hernoemd naar: {new_filename}")
-        else:
-            print("      ❌ Download mislukt.")
-
+        download_belpex_csv(driver, from_date, until_date)
+        rename_belpex_file(download_dir, year, month)
+    finally:
         # Sluit de browser
         driver.quit()
+
 
 # ----------- Zip Functies -----------
 
