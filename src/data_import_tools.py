@@ -43,6 +43,83 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # ----------- Data Import Functies -----------
 
+def get_days_in_month(year, month):
+    """
+    Geef een lijst van alle dagen (YYYY-MM-DD) in de opgegeven maand van een bepaald jaar terug.
+    """
+    _, num_days = calendar.monthrange(year, month)
+    return [f"{year}-{month:02d}-{day:02d}" for day in range(1, num_days + 1)]
+
+def fetch_forecast_day(url, date_str, extra_filters=None):
+    """
+    Haal alle records (in batches) van de Elia API op voor een specifieke dag.
+
+    Parameters:
+    - url (str): API-endpoint (wind of solar dataset).
+    - date_str (str): Datum in formaat YYYY-MM-DD (vereist door Elia API).
+    - extra_filters (list[str], optioneel): Extra filters zoals regio.
+
+    Returns:
+    - list[dict]: Alle records van die dag.
+    """
+
+    all_records = []
+    limit = 100  # Elia legt een beperking op van 100 records per call
+    offset = 0
+
+    while True:
+        # Stel API-filters samen
+        refine = [f'datetime:"{date_str}"']  # Filter op specifieke dag
+        if extra_filters:
+            refine.extend(extra_filters)     # Extra filters zoals vb. Belgische regio
+
+        # API-parameters inclusief filter
+        params = {
+            "order_by": "datetime",          # Sorteer op tijd
+            "limit": limit,                  # Aantal records per batch
+            "offset": offset,                # Startpunt voor batch
+            "refine": refine
+        }
+
+        # Voer het verzoek uit via de veilige request-functie met retry
+        response = safe_requests_get(
+            url,
+            params=params,
+            tries=DEFAULT_ATTEMPTS,
+            delay=RETRY_DELAY,
+            timeout=HTTP_TIMEOUT
+        )
+
+        # Extra controle op HTTP-status (niet echt nodig door raise_for_status(), maar extra informatief)
+        if response.status_code != 200:
+            print(f"      ❌ Fout bij {date_str} (offset {offset}): {response.status_code}")
+            break
+
+        # Haal JSON-gegevens op, neem alleen 'results' (records)
+        data = response.json().get("results", [])
+        if not data:
+            break  # Geen data meer, stop loop
+
+        all_records.extend(data)
+
+        # Print voortgang als er batches zijn
+        if offset != 0:
+            print(f'      ⏳ De eerste {offset} records werden binnengehaald.', end='\r')
+        offset += limit
+
+    return all_records
+
+def save_forecast_json(output_path, records):
+    """
+    Sla een lijst van records op in een JSON-bestand.
+
+    Parameters:
+    - output_path (str): Volledig pad naar het te schrijven bestand.
+    - records (list[dict]): Lijst met datarecords.
+    """
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+
 @retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
 def import_forecast(year, month, url, year_folder, prefix, extra_filters=None):
     """
@@ -70,19 +147,13 @@ def import_forecast(year, month, url, year_folder, prefix, extra_filters=None):
     - Print of het bestand succesvol is opgeslagen of dat er geen data beschikbaar was.
     """
 
-    # Bepaal het aantal dagen in de gevraagde maand en jaar
-    _, num_days = calendar.monthrange(year, month)
-
     # Maak de jaarmap aan indien nodig
     os.makedirs(year_folder, exist_ok=True)
 
     # Loop over elke dag van de maand
-    for day in range(1, num_days + 1):
-        # Datum omzetten naar formaat YYYY-MM-DD (vereist door Elia API)
-        date_str = f"{year}-{month:02d}-{day:02d}"
-        
+    for date_str in get_days_in_month(year, month):
         # Bestandsnaam en volledig pad genereren voor output
-        output_filename = f"{prefix}_{year}{month:02d}{day:02d}.json"
+        output_filename = f"{prefix}_{date_str.replace('-', '')}.json"
         output_path = os.path.join(year_folder, output_filename)
 
         # Indien het bestand reeds bestaat, sla deze dag over
@@ -92,54 +163,12 @@ def import_forecast(year, month, url, year_folder, prefix, extra_filters=None):
 
         print(f"      ⬇️ Ophalen: {output_filename}")
 
-        all_records = []
-        limit = 100  # Elia legt een beperking op van 100 records per call
-        offset = 0
-
-        while True:
-            # Stel API-filters samen
-            refine = [f'datetime:"{date_str}"']  # Filter op specifieke dag
-            if extra_filters:
-                refine.extend(extra_filters)     # Extra filters zoals vb. Belgische regio
-
-            # API-parameters inclusief filter
-            params = {
-                "order_by": "datetime",          # Sorteer op tijd
-                "limit": limit,                  # Aantal records per batch
-                "offset": offset,                # Startpunt voor batch
-                "refine": refine
-            }
-
-             # Voer het verzoek uit via de veilige request-functie met retry
-            response = safe_requests_get(
-                url,
-                params=params,
-                tries=DEFAULT_ATTEMPTS,
-                delay=RETRY_DELAY,
-                timeout=HTTP_TIMEOUT
-            )
-
-            # Extra controle op HTTP-status (niet echt nodig door raise_for_status(), maar extra informatief)
-            if response.status_code != 200:
-                print(f"      ❌ Fout bij {date_str} (offset {offset}): {response.status_code}")
-                break
-
-            # Haal JSON-gegevens op, neem alleen 'results' (records)
-            data = response.json().get("results", [])
-            if not data:
-                break  # Geen data meer, stop loop
-
-            all_records.extend(data)
-
-            # Print voortgang als er batches zijn
-            if offset != 0:
-                print(f'      ⏳ De eerste {offset} records werden binnengehaald.', end='\r')
-            offset += limit
+        # Ophalen van alle records voor deze dag
+        all_records = fetch_forecast_day(url, date_str, extra_filters)
 
         # Als er data gevonden werd, sla deze op in JSON-bestand
         if all_records:
-            with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(all_records, f, ensure_ascii=False, indent=2)
+            save_forecast_json(output_path, all_records)
             print(f"      ✅ Opgeslagen ({len(all_records)} records): {output_filename}")
         else:
             print(f"      ❌ Geen data voor {date_str}")
