@@ -23,7 +23,7 @@ def list_module_constants(module, sort=False):
 
     Parameters:
         module (module): De module waarvan de constanten moeten worden weergegeven.
-        sort (bool): Of de constante variabelen gesorteerd moeten worden afgedrukt (standaard True).
+        sort (bool): Of de constante variabelen gesorteerd moeten worden afgedrukt (standaard False).
 
     Returns:
         dict: Een dictionary met de namen en waarden van de constante variabelen.
