@@ -92,7 +92,7 @@ def fetch_forecast_day(url, date_str, extra_filters=None):
 
         # Extra controle op HTTP-status (niet echt nodig door raise_for_status(), maar extra informatief)
         if response.status_code != 200:
-            print(f"      ❌ Fout bij {date_str} (offset {offset}): {response.status_code}")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ Fout bij {date_str} (offset {offset}): {response.status_code}")
             break
 
         # Haal JSON-gegevens op, neem alleen 'results' (records)
@@ -104,7 +104,7 @@ def fetch_forecast_day(url, date_str, extra_filters=None):
 
         # Print voortgang als er batches zijn
         if offset != 0:
-            print(f'      ⏳ De eerste {offset} records werden binnengehaald.', end='\r')
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⏳ De eerste {offset} records werden binnengehaald.", end='\r')
         offset += limit
 
     return all_records
@@ -158,10 +158,10 @@ def import_forecast(year, month, url, year_folder, prefix, extra_filters=None):
 
         # Indien het bestand reeds bestaat, sla deze dag over
         if os.path.exists(output_path):
-            #print(f"✅ Bestand bestaat al: {output_filename}")
+            #print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Bestand bestaat al: {output_filename}")
             continue
 
-        print(f"      ⬇️ Ophalen: {output_filename}")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⬇️ Ophalen: {output_filename}")
 
         # Ophalen van alle records voor deze dag
         all_records = fetch_forecast_day(url, date_str, extra_filters)
@@ -169,9 +169,9 @@ def import_forecast(year, month, url, year_folder, prefix, extra_filters=None):
         # Als er data gevonden werd, sla deze op in JSON-bestand
         if all_records:
             save_forecast_json(output_path, all_records)
-            print(f"      ✅ Opgeslagen ({len(all_records)} records): {output_filename}")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ✅ Opgeslagen ({len(all_records)} records): {output_filename}")
         else:
-            print(f"      ❌ Geen data voor {date_str}")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ Geen data voor {date_str}")
 
 def import_wind(year, month):
     """
@@ -246,7 +246,7 @@ def prepare_download_dir(base_dir):
     filter_path = os.path.join(download_dir, "BelpexFilter.csv")
     if os.path.exists(filter_path):
         os.remove(filter_path)
-        print("      ❌ Niet hernoemde bestand BelpexFilter.csv werd verwijderd.")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ Niet hernoemde bestand BelpexFilter.csv werd verwijderd.")
 
     return download_dir
 
@@ -296,31 +296,31 @@ def download_belpex_csv(driver, from_date, until_date):
     from_input = driver.find_element(By.ID, "contentPlaceHolder_fromASPxDateEdit_I")
     until_input = driver.find_element(By.ID, "contentPlaceHolder_untilASPxDateEdit_I")
 
-    print(f"      📆 Vul 'From' datum in: {from_date}")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       📆 Vul 'From' datum in: {from_date}")
     from_input.clear()
     from_input.send_keys(from_date)
 
-    print(f"      📆 Vul 'Until' datum in: {until_date}")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       📆 Vul 'Until' datum in: {until_date}")
     until_input.clear()
     until_input.send_keys(until_date)
 
     # Klik op "Show data"
     show_data_button = driver.find_element(By.ID, "contentPlaceHolder_refreshBelpexCustomButton_I")
-    print("      🚀 Klik op 'Show data'")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       🚀 Klik op 'Show data'")
     driver.execute_script("arguments[0].click();", show_data_button)
 
     # Wacht tot de resultaten zichtbaar zijn in de tabel
-    print("      ⏳ Wacht op zoekresultaten...")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⏳ Wacht op zoekresultaten...")
     wait.until(EC.presence_of_element_located((By.ID, "contentPlaceHolder_belpexFilterGrid_DXMainTable")))
     time.sleep(5)  # Extra wachttijd voor stabiliteit
 
     # Klik op de juiste export-div
-    print("      🚀 Klik op 'Exporteer naar CSV'")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       🚀 Klik op 'Exporteer naar CSV'")
     export_button_div = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_contentPlaceHolder_GridViewExportUserControl1_csvExport")))
     driver.execute_script("arguments[0].click();", export_button_div)
 
     # Wacht op de download
-    print("      ⏳ Wacht op download...")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⏳ Wacht op download...")
     time.sleep(5)
 
 def rename_belpex_file(download_dir, year, month):
@@ -342,9 +342,9 @@ def rename_belpex_file(download_dir, year, month):
 
     if os.path.exists(filter_path):
         os.rename(filter_path, new_path)
-        print(f"      ✅ Gedownload en hernoemd naar: {new_filename}")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ✅ Gedownload en hernoemd naar: {new_filename}")
     else:
-        print("      ❌ Download mislukt.")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ Download mislukt.")
 
 @retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
 def import_belpex(year, month):
@@ -371,13 +371,13 @@ def import_belpex(year, month):
 
     # Indien het bestand reeds bestaat, sla deze maand over
     if new_filename in os.listdir(download_dir):
-        #print(f"✅ Bestand bestaat al: {new_filename}")
+        #print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Bestand bestaat al: {new_filename}")
         return
     
     driver = setup_chrome_driver(download_dir)
 
     try:
-        print(f"      ⬇️ Starten met het opvragen Belpex-gegevens periode {month}/{year}")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⬇️ Starten met het opvragen Belpex-gegevens periode {month}/{year}")
         download_belpex_csv(driver, from_date, until_date)
         rename_belpex_file(download_dir, year, month)
     finally:
@@ -438,7 +438,7 @@ def zip_forecast_data(forecast_types=["SolarForecast", "WindForecast"]):
             type_folder = os.path.join(BASE_DIR, forecast_type)
 
         if not os.path.isdir(type_folder):
-            print(f"   ⚠️ Map bestaat niet: {type_folder}")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -    ⚠️ Map bestaat niet: {type_folder}")
             continue
 
         for year in os.listdir(type_folder):
@@ -452,10 +452,10 @@ def zip_forecast_data(forecast_types=["SolarForecast", "WindForecast"]):
 
             # Check of zip nodig is
             if not file_needs_zip(zip_path, year_path):
-                print(f"   ⏭️ Up-to-date: {zip_filename}")
+                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -    ⏭️ Up-to-date: {zip_filename}")
                 continue
 
-            print(f"   📦 Zippen van {year_path} → {zip_filename}")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -    📦 Zippen van {year_path} → {zip_filename}")
 
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:  # 'w" overschrijft vorig bestand als dit bestaat
                 for root, _, files in os.walk(year_path):
@@ -465,7 +465,7 @@ def zip_forecast_data(forecast_types=["SolarForecast", "WindForecast"]):
                             arcname = os.path.relpath(file_path, type_folder)
                             zipf.write(file_path, arcname)
 
-            print(f"   ✅ Klaar: {zip_filename}")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -    ✅ Klaar: {zip_filename}")
 
 def unzip_forecast_data(zip_path, extract_to=None):
     """
@@ -494,7 +494,7 @@ def unzip_forecast_data(zip_path, extract_to=None):
             # Zet de oorspronkelijke modificatie-tijd terug
             date_time = time.mktime(member.date_time + (0, 0, -1))
             os.utime(extracted_path, (date_time, date_time))
-            print(f"      ✅ Uitgepakt: {member.filename}")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ✅ Uitgepakt: {member.filename}")
 
 def unzip_all_forecast_zips(forecast_types=["SolarForecast", "WindForecast"]):
     """
@@ -516,13 +516,13 @@ def unzip_all_forecast_zips(forecast_types=["SolarForecast", "WindForecast"]):
             type_folder = os.path.join(BASE_DIR, forecast_type)
 
         if not os.path.isdir(type_folder):
-            print(f"   ❌ Map niet gevonden: {type_folder}")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -    ❌ Map niet gevonden: {type_folder}")
             continue
 
         for file in os.listdir(type_folder):
             if file.endswith(".zip"):
                 zip_path = os.path.join(type_folder, file)
-                print(f"   📦 Bezig met uitpakken: {file}")
+                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -    📦 Bezig met uitpakken: {file}")
                 unzip_forecast_data(zip_path)
 
     print('')
@@ -586,7 +586,7 @@ def update_data(from_year=None, to_year=None, data_type='all'):
 
     # Altijd eerst de huidige bestanden unzippen als er gekozen werd voor 'wind' of 'solar'
     if data_type in ('wind', 'solar', 'all'):
-        print("\n📦 Unzippen van de forecast-data...")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 📦 Unzippen van de forecast-data...")
         unzip_all_forecast_zips()
 
     # Process map (data_type → functie + label)
@@ -596,7 +596,7 @@ def update_data(from_year=None, to_year=None, data_type='all'):
         "belpex": (import_belpex, "Belpex-data"),
     }
 
-    print(f"📅 Start met ophalen data voor periode {from_year}-{to_year}")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 📅 Start met ophalen data voor periode {from_year}-{to_year}")
     counter = 0
 
     # Loop over jaren en maanden
@@ -605,7 +605,7 @@ def update_data(from_year=None, to_year=None, data_type='all'):
             if (year == latest_available_year and month > latest_available_month) or (year > latest_available_year):
                 continue
 
-            print(f"   📅 Ophalen data voor {year}-{month:02d} ({data_type})")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -    📅 Ophalen data voor {year}-{month:02d} ({data_type})")
 
             # Loop over process map
             for dtype, (func, label) in import_funcs.items():
@@ -614,14 +614,14 @@ def update_data(from_year=None, to_year=None, data_type='all'):
                         func(year, month)
                         counter += 1
                     except Exception as e:
-                        print(f"❌ Fout bij ophalen {label} {year}-{month:02d}: {e}")
+                        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ❌ Fout bij ophalen {label} {year}-{month:02d}: {e}")
 
     if counter == 0:
-        print("   ❌ Geen data beschikbaar.")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -    ❌ Geen data beschikbaar.")
 
     # Alleen als 'wind' of 'solar' werd geüpdatet: zip de forecast-data
     if data_type in ('wind', 'solar', 'all'):
-        print("\n📦 Zippen van de forecast-data...")
+        print(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 📦 Zippen van de forecast-data...")
         zip_forecast_data()
 
-    print("\n✅ Data-import afgerond.\n")
+    print(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Data-import afgerond.\n")

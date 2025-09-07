@@ -251,7 +251,7 @@ def insert_batch(batch, model):
         session.commit()
         return result.rowcount
     except Exception as e:
-        print(f"⚠️ Fout bij batch-insert: {e} — probeer individuele inserts...")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ⚠️ Fout bij batch-insert: {e} — probeer individuele inserts...")
         inserted = 0
         for record in batch:
             try:
@@ -260,7 +260,7 @@ def insert_batch(batch, model):
                 if result.rowcount:
                     inserted += 1
             except Exception as e:
-                print(f"⚠️ Individuele insert mislukt: {e}")
+                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ⚠️ Individuele insert mislukt: {e}")
         session.commit()
         return inserted
 
@@ -290,14 +290,15 @@ def process_directory(path, model, batch_size=1000):
 
         batch = []
 
-        for filepath in tqdm(all_files, desc=f"Verwerken van {model.__name__} van het jaar {year_dir}"):
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 🔄 Start bijwerken jaar {year_dir} van {model.__name__}.")
+        for filepath in tqdm(all_files, desc=f"                       Bezig verwerken van {model.__name__} van het jaar {year_dir}"):
             try:
                 with open(filepath, 'r', encoding='utf-8') as f:
                     records = json.load(f)
                     if isinstance(records, dict):
                         records = [records]
             except Exception as e:
-                print(f"⚠️ Fout bij laden van bestand {filepath}: {e}")
+                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ⚠️ Fout bij laden van bestand {filepath}: {e}")
                 continue
 
             for record in records:
@@ -315,9 +316,9 @@ def process_directory(path, model, batch_size=1000):
             inserted_records += insert_batch(batch, model)
 
         if inserted_records > 0:
-            print(f"✅ {inserted_records} van {total_records} records van het jaar {year_dir} succesvol toegevoegd aan {model.__tablename__} (duplicaten genegeerd).")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ {inserted_records} van {total_records} records van het jaar {year_dir} succesvol toegevoegd aan {model.__tablename__} (duplicaten genegeerd).\n")
         else:
-            print(f"✅ Jaar {year_dir} van {model.__name__} is bijgewerkt in de database.")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Jaar {year_dir} van {model.__name__} is bijgewerkt in de database.\n")
  
 def process_belpex_directory(path, batch_size=1000):
     """
@@ -332,7 +333,8 @@ def process_belpex_directory(path, batch_size=1000):
     total_records = 0
     batch = []
 
-    for filepath in tqdm(all_files, desc="Verwerken van Belpex-data"):
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 🔄 Start bijwerken belpexprijzen.")
+    for filepath in tqdm(all_files, desc=f"                       Bezig verwerken van Belpex-data"):
         with open(filepath, encoding='iso-8859-1') as csvfile:
             reader = csv.DictReader(csvfile, delimiter=';')
             for row in reader:
@@ -355,7 +357,7 @@ def process_belpex_directory(path, batch_size=1000):
                     }
                     batch.append(record)
                 except Exception as e:
-                    print(f"⚠️ Fout bij record in {filepath}: {e}")
+                    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ⚠️ Fout bij record in {filepath}: {e}")
 
                 if len(batch) >= batch_size:
                     inserted_records += insert_batch(batch, BelpexPrice)
@@ -365,9 +367,9 @@ def process_belpex_directory(path, batch_size=1000):
         inserted_records += insert_batch(batch, BelpexPrice)
 
     if inserted_records > 0:
-        print(f"✅ {inserted_records} van {total_records} Belpex-records toegevoegd (duplicaten genegeerd).")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ {inserted_records} van {total_records} Belpex-records toegevoegd (duplicaten genegeerd).\n")
     else:
-        print(f"✅ Belpexprijzen zijn bijgewerkt in de database.")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Belpexprijzen zijn bijgewerkt in de database.\n")
 
 def to_sql(data_type="all"):
     """
@@ -393,7 +395,7 @@ def to_sql(data_type="all"):
         types = DATASETS.keys() if data_type == "all" else [data_type]
         for t in types:
             if t not in DATASETS:
-                print(f"⚠️ Onbekend datatype: {t}")
+                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ⚠️ Onbekend datatype: {t}")
                 continue
 
             path, model, func, label = DATASETS[t]
@@ -403,12 +405,12 @@ def to_sql(data_type="all"):
                 else:
                     func(path)
             except Exception as e:
-                print(f"❌ Fout bij verwerken data {label}: {e}")
+                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ❌ Fout bij verwerken data {label}: {e}")
     except KeyboardInterrupt:
-        print("\n🛑 Script onderbroken door gebruiker.")
+        print(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 🛑 Script onderbroken door gebruiker.")
     except Exception as e:
-        print(f"❌ Onverwachte fout: {e}")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ❌ Onverwachte fout: {e}")
     finally:
         session.close()
         engine.dispose()
-        print("\n🔒 Databaseverbinding correct afgesloten.\n")
+        print(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 🔒 Databaseverbinding correct afgesloten.\n")

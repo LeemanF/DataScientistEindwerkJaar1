@@ -63,15 +63,23 @@ log_path = os.path.join(LOG_DIR, log_filename)
 # -------- Scriptuitvoering --------
 
 with DualLogger(log_path):
-    print("=======================================================================================")
-    print(f"🕒 Start auto-update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"=================================================================================================")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 🕒 Start Auto Update.")
+    print(f"=================================================================================================\n")
+
 
     try:
+        print("---------------------------------------------------------------------------------------")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 📥 Start downloaden data.")
+        print("---------------------------------------------------------------------------------------\n")
         update_data()
+        print("---------------------------------------------------------------------------------------")
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 🗄️ Start bijwerken database.")
+        print("---------------------------------------------------------------------------------------\n")
         to_sql()
-        print(f"\n✅ Update afgerond: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        print(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Update afgerond.\n")
     except Exception as e:
-        print(f"\n❌ Fout tijdens update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {e}")
+        print(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ❌ Fout tijdens update: - {e}")
         print("\n------------------------------------------------------------------------\n")
         print(traceback.format_exc())
         print("------------------------------------------------------------------------\n")
