@@ -1,0 +1,30 @@
+Dag Frank,
+
+Zoals altijd, sta ik versteld van uw projecten (maar altijd in de goede manier)!
+
+Je maakt al goed gebruik van de verschillende concepten die je gezien hebt in de eerste 2 modules!
+
+Feedback:
+1. In de klassen SolarData, WInddata en Belpexprice, zijn er gedeelde variabelen beschikbaar, zoals data time, misschien kunnen hier 1 of meerdere klassen extra voor gedefinieerd worden?
+
+2. Sommige functies maken gebruik van herhaling (zoals update_data (bij het uitvoeren van import_wind/solar/belpex)), ik deek dat deze perfect kunnen weg gewerkt worden zodat 1 for - if overblijft (a.d.h.v. een process map).
+Probeer zoveel mogelijk herhaling uit de code te halen (DRY-principe).
+
+3. In sommige except statements wordt er gebruik gemaakt van print, misschien kan er hier ook gebruik gemaakt worden van de logging module (voor zo ver uw customization het toe laat natuurlijk).
+
+4. In uw code staat er soms een print statement om aan te tonen dat er geen data beschikbaar is of omdat counters op 0 staan, ik zou deze ook opvangen met een try exception blok ( bvb raise RuntimeError(f"Geen data geïmporteerd voor {year}-{month:02d}")). 
+
+5. Probeer ook zoveel mogelijk grote functies te vermijden, indien mogelijk splits deze op in kleinere stukken code zodat het beheersbaarder blijft
+
+
+
+Indien ik nog andere elementen tegen kom zal ik deze hier ook vermelden.
+
+Je hebt al veel code geschreven en bent al goed op weg naar het afhandelen van uw project, maar probeer het jezelf niet te moeilijk te maken!
+Doe zeker zo verder en het eindwerk zal voor u geen probleem zijn!
+
+
+
+Mvg,
+
+Brecht
