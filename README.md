@@ -1,7 +1,7 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 06/07/2025
+Laatste update 14/09/2025
 
 Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -65,13 +65,10 @@ Hierdoor worden netwerkproblemen automatisch opgevangen met maximaal twee extra 
 #### Gegevensopslag en compressie
 De opgehaalde Elia-data worden opgeslagen als dagelijkse JSON-bestanden.  
 Om opslagruimte te beperken en versiebeheer te vereenvoudigen, worden deze per maand gecomprimeerd (.zip).  
-Dit maakt het eenvoudiger om data op GitHub te beheren en voorkomt overbodige duplicatie in versiebeheer.  
 De zip-bestanden bevatten steeds een volledige maand per type (zonne- of windenergie), wat ook het manueel beheren vergemakkelijkt.  
 
 Belangrijke functies:
-- `file_needs_zip(...)`
 - `zip_forecast_data(...)`
-- `unzip_forecast_data(...)`
 - `unzip_all_forecast_zips(...)`
 
 Het hele proces kan automatisch uitgevoerd worden met:
@@ -83,9 +80,9 @@ Het hele proces kan automatisch uitgevoerd worden met:
 De module [`database_tools.py`](src/database_tools.py) bevat de klassen en functies die nodig zijn om de data op te slaan in een SQLite-database.  
 Volgende klassen vormen het fundament van het SQLAlchemy-model:
 
-- `class SolarData`: model voor het creëren en vullen van de tabel `solar_data`
-- `class WindData`: model voor het creëren en vullen van de tabel `wind_data`
-- `class BelpexPrice`: model voor het creëren en vullen van de tabel `belpex_prices`
+- `class SolarData`: model voor het creëren en vullen van de tabel `tbl_solar_data`
+- `class WindData`: model voor het creëren en vullen van de tabel `tbl_wind_data`
+- `class BelpexPrice`: model voor het creëren en vullen van de tabel `tbl_belpex_prices`
 
 Een overzicht van de beschikbare modellen en hun kolommen is terug te vinden via de functie `alle_modellen_en_kolommen()` in de module  
 [`sqlalchemy_model_utils.py`](src/utils/sqlalchemy_model_utils.py).
@@ -127,7 +124,7 @@ Dit script kan via de Windows Taakplanner automatisch op maandelijkse basis uitg
 
 #### Logging (`dual_logger.py`)
 De klasse [`DualLogger()`](src/utils/dual_logger.py) zorgt ervoor dat alle console-uitvoer ook naar een logbestand geschreven wordt: zie [voorbeeld](Documents/log_2025-06-01.txt).  
-Hoewel de logging-module de professionele standaard is, biedt DualLogger in het kader van dit eindproject een eenvoudige, robuuste en onderhoudsarme manier om zowel standaarduitvoer als foutmeldingen en tqdm-voortgangsbalken simultaan te loggen — zonder dat ik alle print()-aanroepen moest herschrijven. Voor grotere projecten zou ik uiteraard de logging-module verkiezen.
+Hoewel de logging-module de professionele standaard is, biedt DualLogger in het kader van dit eindproject een eenvoudige, robuuste en onderhoudsarme manier om zowel standaarduitvoer als foutmeldingen en tqdm-voortgangsbalken simultaan te loggen. Voor grotere projecten zou ik uiteraard de logging-module verkiezen.
 
 ### Laden en visualiseren van de data
 *Under construction*  
