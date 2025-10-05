@@ -123,7 +123,7 @@ De functies `update_data()` en `to_sql()` worden hierbij binnen de contextmanage
 Dit script kan via de Windows Taakplanner automatisch op maandelijkse basis uitgevoerd worden: zie [voorbeeld instellingen](Documents/Images/Taakplanner.png)
 
 #### Logging (`dual_logger.py`)
-De klasse [`DualLogger()`](src/utils/dual_logger.py) zorgt ervoor dat alle console-uitvoer ook naar een logbestand geschreven wordt: zie [voorbeeld](Documents/log_2025-06-01.txt).  
+De klasse [`DualLogger()`](src/utils/dual_logger.py) zorgt ervoor dat alle console-uitvoer ook naar een logbestand geschreven wordt: zie [voorbeeld](Documents/log_2025-10-05.txt).  
 Hoewel de logging-module de professionele standaard is, biedt DualLogger in het kader van dit eindproject een eenvoudige, robuuste en onderhoudsarme manier om zowel standaarduitvoer als foutmeldingen en tqdm-voortgangsbalken simultaan te loggen. Voor grotere projecten zou ik uiteraard de logging-module verkiezen.
 
 ### Laden en visualiseren van de data
