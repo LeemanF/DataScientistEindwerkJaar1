@@ -170,44 +170,49 @@ Base.metadata.create_all(engine)
 
 def create_views(engine):
     """
-    Maakt SQL-views aan voor wind-, zonne-energie- en Belpex-gegevens.
+    Maakt of vernieuwt SQL-views voor wind-, zonne-energie- en Belpex-gegevens.
 
     Deze functie creëert drie views in de SQLite-database:
     - v_wind: aggregatie van gemeten en beschikbare windcapaciteit per datetime.
     - v_solar: aggregatie van gemeten en beschikbare zonnecapaciteit per datetime.
     - v_belpex: elektriciteitsprijs per datetime uit de Belpex-markt.
 
-    Views worden enkel aangemaakt als ze nog niet bestaan.
+    Als een view al bestaat, wordt deze eerst verwijderd en daarna opnieuw aangemaakt
+    met de meest recente definitie.
 
     Parameters:
         engine (sqlalchemy.engine.Engine): De SQLAlchemy-engine die met de database verbonden is.
     """
-    with engine.connect() as conn:
-        conn.execute(text("""
-            CREATE VIEW IF NOT EXISTS v_wind AS
+
+    views = {
+        "v_wind": """
             SELECT datetime, year, month, day, weekday, hour, minute,
                    SUM(measured) AS measured_wind_MW,
                    SUM(monitoredcapacity) AS monitored_wind_MW
             FROM tbl_wind_data
-            GROUP BY datetime
-        """))
+            GROUP BY datetime, year, month, day, weekday, hour, minute
+        """,
 
-        conn.execute(text("""
-            CREATE VIEW IF NOT EXISTS v_solar AS
+        "v_solar": """
             SELECT datetime,
                    SUM(measured) AS measured_solar_MW,
                    SUM(monitoredcapacity) AS monitored_solar_MW
             FROM tbl_solar_data
-            GROUP BY datetime
-        """))
+            GROUP BY datetime, year, month, day, weekday, hour, minute
+        """,
 
-        conn.execute(text("""
-            CREATE VIEW IF NOT EXISTS v_belpex AS
+        "v_belpex": """
             SELECT datetime, year, month, day, hour,
                    price_eur_per_MWh AS price_belpex_MWh
             FROM tbl_belpex_prices
-            GROUP BY datetime
-        """))
+        """
+    }
+
+    with engine.connect() as conn:
+        for name, query in views.items():
+            conn.execute(text(f"DROP VIEW IF EXISTS {name}"))
+            conn.execute(text(f"CREATE VIEW {name} AS {query}"))
+        conn.commit()  # belangrijk bij SQLite om wijzigingen te bewaren
 
 create_views(engine)
 
