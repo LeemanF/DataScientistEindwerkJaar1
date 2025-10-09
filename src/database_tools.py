@@ -157,7 +157,7 @@ class BelpexPrice(Base):
     weekday = Column(Integer)
     hour = Column(Integer)
 #    minute = Column(Integer)
-    price_eur_per_mwh = Column(Float)
+    price_eur_per_MWh = Column(Float)
     __table_args__ = (
         Index('idx_belpex_year', 'year'),
         Index('idx_belpex_month', 'month'),
@@ -186,8 +186,8 @@ def create_views(engine):
         conn.execute(text("""
             CREATE VIEW IF NOT EXISTS v_wind AS
             SELECT datetime, year, month, day, weekday, hour, minute,
-                   SUM(measured) AS measured_wind,
-                   SUM(monitoredcapacity) AS monitored_wind
+                   SUM(measured) AS measured_wind_MW,
+                   SUM(monitoredcapacity) AS monitored_wind_MW
             FROM tbl_wind_data
             GROUP BY datetime
         """))
@@ -195,8 +195,8 @@ def create_views(engine):
         conn.execute(text("""
             CREATE VIEW IF NOT EXISTS v_solar AS
             SELECT datetime,
-                   SUM(measured) AS measured_solar,
-                   SUM(monitoredcapacity) AS monitored_solar
+                   SUM(measured) AS measured_solar_MW,
+                   SUM(monitoredcapacity) AS monitored_solar_MW
             FROM tbl_solar_data
             GROUP BY datetime
         """))
@@ -204,7 +204,7 @@ def create_views(engine):
         conn.execute(text("""
             CREATE VIEW IF NOT EXISTS v_belpex AS
             SELECT datetime, year, month, day, hour,
-                   price_eur_per_mwh AS price_belpex
+                   price_eur_per_MWh AS price_belpex_MWh
             FROM tbl_belpex_prices
             GROUP BY datetime
         """))
@@ -347,7 +347,7 @@ def process_belpex_directory(path, batch_size=1000):
                     euro = float(euro_cleaned.replace(",", "."))
                     record = {
                         "datetime": dt,
-                        "price_eur_per_mwh": euro,
+                        "price_eur_per_MWh": euro,
                         "day": dt.day,
                         "month": dt.month,
                         "year": dt.year,

@@ -32,6 +32,8 @@ Meer informatie over de aangeboden data vind je hier:
 - Voorbeeld van opgehaalde windgegevens: [Wind.json](Documents/Wind.json)  
 - Voorbeeld van opgehaalde zonnegegevens: [Solar.json](Documents/Solar.json)
 
+Een toelichting over het verschil tussen vermogen en energie vind je via de volgende link: [vermogen vs energie](Documents/vermogen_energie.md)
+
 ### Elexys (Belpex)
 
 De Belpex-spotmarktprijzen zijn beschikbaar via de Elexys-website:  
