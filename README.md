@@ -18,13 +18,13 @@ Ik koos voor een analyse van de productie van zonne- en windenergie, gecombineer
 
 ### Elia
 
-Elia stelt via hun website gegevens beschikbaar:  
-- [Zonne-energieproductie](https://www.elia.be/nl/grid-data/productie/zonne-energieproductie)  
+Elia stelt via haar website gegevens beschikbaar:  
+- [Zonne-energieproductie](https://www.elia.be/nl/grid-data/productie-gegevens/solar-power-generation)  
 - [Windenergieproductie](https://www.elia.be/nl/grid-data/productie-gegevens/windenergieproductie)
 
-`UPDATE 06/07/2025: Elia biedt niet langer de data aan via een gewone download op hun website en verplicht het gebruik van API`
+Zij bieden niet langer de mogelijkheid aan om de data via deze pagina's te downloaden en verplichten het gebruik van de API
 
-Omdat Elia ook een API aanbiedt, werd gekozen voor deze stabielere oplossing:  
+In mijn project werd sowieso de voorkeur gegeven aan de stabielere oplossing via de API:  
 - [Dataset zonne-energie (ODS031)](https://opendata.elia.be/explore/dataset/ods031/information/)  
 - [Dataset windenergie (ODS032)](https://opendata.elia.be/explore/dataset/ods032/information/)
 
@@ -32,7 +32,7 @@ Meer informatie over de aangeboden data vind je hier:
 - Voorbeeld van opgehaalde windgegevens: [Wind.json](Documents/Wind.json)  
 - Voorbeeld van opgehaalde zonnegegevens: [Solar.json](Documents/Solar.json)
 
-Een toelichting over het verschil tussen vermogen en energie vind je via de volgende link: [vermogen vs energie](Documents/vermogen_energie.md)
+Een toelichting over het verschil tussen vermogen en energie vind je via de volgende link: [Vermogen vs energie](Documents/vermogen_energie.md)
 
 ### Elexys (Belpex)
 
