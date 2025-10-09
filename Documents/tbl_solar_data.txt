@@ -14,7 +14,7 @@ Model: SolarData (tabel: tbl_solar_data)
   - mostrecentforecast: Most recently forecasted volume.
   - mostrecentconfidence10: Most recently forecasted volume with a probability of less than 10% that a lower volume will be produced.
   - mostrecentconfidence90: Most recently forecasted volume with a probability of less than 10% that a higher volume will be produced.
-  - dayahead11hforecast: Day-ahead forecasted volume published at 11AM. 
+  - dayahead11hforecast: Day-ahead forecasted volume published at 11AM.
   - dayahead11hconfidence10: Day-ahead forecasted volume with a probability of less than 10% that a lower volume will be produced, published at 11AM.
   - dayahead11hconfidence90: Day-ahead forecasted volume with a probability of less than 10% that a higher volume will be produced, published at 11AM.
   - dayaheadforecast: Day-ahead forecasted volume to be produced.
@@ -30,9 +30,9 @@ Model: SolarData (tabel: tbl_solar_data)
     - PrimaryKeyConstraint: PrimaryKeyConstraint(Column('id', Integer(), table=<tbl_solar_data>, primary_key=True, nullable=False))
 
   Indexen:
+    - idx_solar_hour: columns=['hour']
+    - idx_solar_datetime: columns=['datetime']
     - idx_solar_month: columns=['month']
     - idx_solar_year: columns=['year']
     - idx_solar_day: columns=['day']
     - idx_solar_weekday: columns=['weekday']
-    - idx_solar_hour: columns=['hour']
-    - idx_solar_datetime: columns=['datetime']

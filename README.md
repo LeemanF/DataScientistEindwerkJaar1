@@ -207,7 +207,12 @@ Project/
 ├── Database/
 │   └── energie_data.sqlite             # SQLite-database met gestructureerde gegevens
 ├── Documents/                          # Bijkomende documentatie van het project
+│   ├── log_2025-10-05.txt
 │   ├── Solar.json
+│   ├── tbl_belpex_prices.txt
+│   ├── tbl_solar_data.txt
+│   ├── tbl_wind_data.txt
+│   ├── vermogen_energie.md
 │   ├── Wind.json
 │   ├── Images/                         # Afbeeldingen die gebruikt worden in README.md
 │   │   ├── Banner.png
