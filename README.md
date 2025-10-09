@@ -217,7 +217,7 @@ Project/
 │   ├── Images/                         # Afbeeldingen die gebruikt worden in README.md
 │   │   ├── Banner.png
 │   │   └── ... 
-├── Log/                                # Logbestanden gegenereerd door scripts
+├── Log/                                # Logbestanden gegenereerd door auto_update.py
 │   └── log_YYYY-MM-DD.txt
 ├── src/                                # Broncode van het project (modulair opgebouwd)
 │   ├── __init__.py
@@ -230,6 +230,7 @@ Project/
 │       ├── dual_logger.py              # Print + logfile logging in één
 │       ├── package_tools.py            # Controle en installatie van dependencies
 │       └── safe_requests.py            # Veilige HTTP-requests met retries
+│       └── sqlalchemy_model_utils.py   # Hulpfuncties voor inspectie van SQLAlchemy-modellen.
 ```
 
 ---
