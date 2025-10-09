@@ -198,7 +198,7 @@ def create_views(engine):
                    SUM(measured) AS measured_solar_MW,
                    SUM(monitoredcapacity) AS monitored_solar_MW
             FROM tbl_solar_data
-            GROUP BY datetime, year, month, day, weekday, hour, minute
+            GROUP BY datetime
         """,
 
         "v_belpex": """
