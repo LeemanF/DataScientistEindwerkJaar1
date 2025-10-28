@@ -193,16 +193,25 @@ def create_views(engine):
             GROUP BY datetime, year, month, day, weekday, hour, minute
         """,
 
+        "v_wind_offshoreonshore": """
+            SELECT offshoreonshore,
+                   datetime, year, month, day, weekday, hour, minute,
+                   SUM(measured) AS measured_wind_MW,
+                   SUM(monitoredcapacity) AS monitored_wind_MW
+            FROM tbl_wind_data
+            GROUP BY offshoreonshore, datetime, year, month, day, weekday, hour, minute
+        """,
+
         "v_solar": """
-            SELECT datetime,
+            SELECT datetime, year, month, day, weekday, hour, minute,
                    SUM(measured) AS measured_solar_MW,
                    SUM(monitoredcapacity) AS monitored_solar_MW
             FROM tbl_solar_data
-            GROUP BY datetime
+            GROUP BY datetime, year, month, day, weekday, hour, minute
         """,
 
         "v_belpex": """
-            SELECT datetime, year, month, day, hour,
+            SELECT datetime, year, month, day, weekday, hour,
                    price_eur_per_MWh AS price_belpex_MWh
             FROM tbl_belpex_prices
         """
