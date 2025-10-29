@@ -1,5 +1,27 @@
-requests>=2.25.0
-selenium>=4.1.0
-webdriver_manager>=3.5.0
-sqlalchemy>=2.0.0
-tqdm>=4.60.0
+# -----------------------------
+# HTTP & browser automation
+# -----------------------------
+requests>=2.25.0           # Om API-requests te maken (Elia Open Data, Belpex)
+selenium>=4.1.0            # Voor browserautomatisering bij Belpex (bijv. CSV-downloads)
+webdriver_manager>=3.5.0   # Automatisch downloaden en beheren van de juiste WebDriver voor Selenium
+tqdm>=4.60.0               # Voor progress bars bij het ophalen van grote datasets
+
+# -----------------------------
+# Database
+# -----------------------------
+sqlalchemy>=2.0.0          # Tool voor databaseverbinding en SQL-uitvoering
+                           # Bevat ook een ORM-laag (Object-Relational Mapping) waarmee je tabellen
+                           # als Python-objecten kunt gebruiken en SQL-operaties kunt uitvoeren
+                           # zonder expliciete SQL-query's te schrijven
+
+# -----------------------------
+# Data-analyse en numeriek
+# -----------------------------
+pandas>=1.3.0              # DataFrames: tabelformaat voor data cleaning, aggregaties, pivot-tabellen
+numpy>=1.21.0              # Numerieke berekeningen, vectorisatie en ondersteuning voor Pandas
+
+# -----------------------------
+# Visualisatie
+# -----------------------------
+matplotlib>=3.5.0          # Basisgrafieken: line, bar, stacked bar, scatter, etc.
+seaborn>=0.11.0            # Uitgebreidere statistische visualisaties en heatmaps
