@@ -72,13 +72,28 @@ TRANSLATIONS = {
                 "nl": "Gemiddelde Belpex-prijs (€/MWh)",
                 "fr": "Prix moyen Belpex (€/MWh)",
                 "en": "Average Belpex price (€/MWh)"
-            }
+            },
+            "belpex_hourly_weekday": {
+                "nl": "Gemiddelde Belpex-prijs per uur per weekdag",
+                "fr": "Prix moyen Belpex par heure et par jour de la semaine",
+                "en": "Average Belpex price per hour per weekday"
+            },
+            "belpex_hourly_month": {
+                "nl": "Gemiddelde Belpex-prijs per uur per maand",
+                "fr": "Prix moyen Belpex par heure et par mois",
+                "en": "Average Belpex price per hour per month"
+            },
         },
         "labels": {
             "belpex_EUR_per_MWh": {
                 "nl": "Belpex prijs (€/MWh)",
                 "fr": "Prix Belpex (€/MWh)",
                 "en": "Belpex price (€/MWh)"
+            },
+            "price": {
+                "nl": "Prijs (€/MWh)",
+                "fr": "Prix (€/MWh)",
+                "en": "Price (€/MWh)"
             },
             "wind_GWh": {
                 "nl": "Wind (GWh)",
@@ -110,6 +125,11 @@ TRANSLATIONS = {
             "nl": "Uur",
             "fr": "Heure",
             "en": "Hour"
+        },
+        "totals": {
+            "nl": "Totaal",
+            "fr": "Total",
+            "en": "Total"
         }
     }
 
