@@ -1,17 +1,117 @@
 """
 localization.py
 
-Bevat maand- en weekdagnamen in het Nederlands, Frans en Engels,
-zowel in korte als volledige vorm.
+Bevat meertalige ondersteuning (Nederlands, Frans en Engels) voor:
+- Maand- en weekdagnamen (kort en volledig)
+- Vertalingen van titels en labels voor grafieken en tabellen
+
+Structuur:
+    TRANSLATIONS   → Tekstlabels en grafiektitels per taal
+    MONTHS         → Maandnamen (kort & voluit)
+    WEEKDAYS       → Weekdagnamen (kort & voluit)
+    Helperfuncties → Naamopvraging per nummer of datetime-object
 
 Gebruik:
-    from src.utils.localization import get_name, MONTHS, WEEKDAYS
+    from src.utils.localization import (
+        get_month_name, 
+        get_weekday_name, 
+        get_month_name_from_date,
+        get_weekday_name_from_date,
+        TRANSLATIONS, 
+        MONTHS, 
+        WEEKDAYS
+    )
 
-    print(get_name(3, "month", lang="nl", full=False))   # Mrt
-    print(get_name(5, "month", lang="fr", full=True))    # Mai
-    print(get_name(2, "weekday", lang="en", full=True))  # Tuesday
+Voorbeelden:
+    >>> get_month_name(3, lang="nl", short=False)
+    'Maart'
+
+    >>> get_weekday_name(5, lang="fr", short=True)
+    'Ven'
+
+    >>> get_month_name_from_date(datetime(2024, 7, 15), lang="en")
+    'Jul'
+
+    >>> TRANSLATIONS["titles"]["solar"]["nl"]
+    'Maandelijkse zonne-energieproductie (GWh)'
 """
+
 from datetime import datetime
+from typing import Literal
+
+# Type voor taalcode: momenteel beperkt tot Nederlands, Frans of Engels
+LangCode = Literal["nl", "fr", "en"]
+"""Ondersteunde taalcodes voor meertalige functies."""
+
+# -------------------------------------------------------------------
+# Vertalingen voor visuals
+# -------------------------------------------------------------------
+TRANSLATIONS = {
+        "titles": {
+            "wind_split": {
+                "nl": "Maandelijkse windproductie (GWh)",
+                "fr": "Production éolienne mensuelle (GWh)",
+                "en": "Monthly wind production (GWh)"
+            },
+            "wind_total": {
+                "nl": "Totale maandelijkse windproductie (GWh)",
+                "fr": "Production éolienne totale mensuelle (GWh)",
+                "en": "Total monthly wind production (GWh)"
+            },
+            "solar": {
+                "nl": "Maandelijkse zonne-energieproductie (GWh)",
+                "fr": "Production solaire mensuelle (GWh)",
+                "en": "Monthly solar production (GWh)"
+            },
+            "combined": {
+                "nl": "Hernieuwbare energieproductie en Belpex-prijs per maand",
+                "fr": "Production d'énergie renouvelable et prix Belpex par mois",
+                "en": "Renewable energy production and Belpex price per month"
+            },
+            "belpex": {
+                "nl": "Gemiddelde Belpex-prijs (€/MWh)",
+                "fr": "Prix moyen Belpex (€/MWh)",
+                "en": "Average Belpex price (€/MWh)"
+            }
+        },
+        "labels": {
+            "belpex_EUR_per_MWh": {
+                "nl": "Belpex prijs (€/MWh)",
+                "fr": "Prix Belpex (€/MWh)",
+                "en": "Belpex price (€/MWh)"
+            },
+            "wind_GWh": {
+                "nl": "Wind (GWh)",
+                "fr": "Éolien (GWh)",
+                "en": "Wind (GWh)"
+            },
+            "solar_GWh": {
+                "nl": "Zon (GWh)",
+                "fr": "Solaire (GWh)",
+                "en": "Solar (GWh)"
+            }
+        },
+        "year": {
+            "nl": "Jaar",
+            "fr": "Année",
+            "en": "Year"
+        },
+        "month": {
+            "nl": "Maand",
+            "fr": "Mois",
+            "en": "Month"
+        },
+        "weekday": {
+            "nl": "Weekdag",
+            "fr": "Jour de la semaine",
+            "en": "Weekday"
+        },
+        "hour": {
+            "nl": "Uur",
+            "fr": "Heure",
+            "en": "Hour"
+        }
+    }
 
 # -------------------------------------------------------------------
 # Maandnamen
@@ -179,7 +279,7 @@ WEEKDAYS = {
 # Helperfuncties
 # -------------------------------------------------------------------
 
-def get_month_name(month_number: int, lang: str = "nl", short: bool = True) -> str:
+def get_month_name(month_number: int, lang: LangCode = "nl", short: bool = True) -> str:
     """
     Geeft de maandnaam terug op basis van maandnummer (1-12).
 
@@ -195,7 +295,7 @@ def get_month_name(month_number: int, lang: str = "nl", short: bool = True) -> s
     return MONTHS.get(lang, MONTHS["nl"])[style].get(month_number, "Onbekend")
 
 
-def get_weekday_name(weekday_number: int, lang: str = "nl", short: bool = True) -> str:
+def get_weekday_name(weekday_number: int, lang: LangCode = "nl", short: bool = True) -> str:
     """
     Geeft de weekdag terug op basis van nummer (1 = maandag, 7 = zondag).
 
@@ -211,7 +311,7 @@ def get_weekday_name(weekday_number: int, lang: str = "nl", short: bool = True) 
     return WEEKDAYS.get(lang, WEEKDAYS["nl"])[style].get(weekday_number, "Onbekend")
 
 
-def get_month_name_from_date(date_obj: datetime, lang: str = "nl", short: bool = True) -> str:
+def get_month_name_from_date(date_obj: datetime, lang: LangCode = "nl", short: bool = True) -> str:
     """
     Geeft de maandnaam voor een gegeven datetime-object.
 
@@ -226,7 +326,7 @@ def get_month_name_from_date(date_obj: datetime, lang: str = "nl", short: bool =
     return get_month_name(date_obj.month, lang, short)
 
 
-def get_weekday_name_from_date(date_obj: datetime, lang: str = "nl", short: bool = True) -> str:
+def get_weekday_name_from_date(date_obj: datetime, lang: LangCode = "nl", short: bool = True) -> str:
     """
     Geeft de weekdagnaam voor een gegeven datetime-object.
 
