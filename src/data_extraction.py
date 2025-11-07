@@ -505,19 +505,22 @@ def get_combined_dataframe(fillna: bool = False, lang: LangCode = "nl", short: b
 def get_negative_price_counts_pivot(
     lang: LangCode = "nl",
     short: bool = True,
-    include_totals: bool = False
+    include_totals: bool = False,
+    cumulative: bool = False
 ) -> pd.DataFrame:
     """
     Maakt een pivot-tabel met het aantal negatieve Belpex-prijzen per maand en per jaar.
 
     De maandnamen worden vertaald naar de opgegeven taal en notatie
     (kort of volledig). Optioneel kan een kolomtotaal worden toegevoegd.
+    Optioneel kan een cumulatief totaal per jaar worden berekend.
 
     Args:
         lang (LangCode): 'nl', 'fr' of 'en'
         short (bool): gebruik korte maandnamen (True) of volledige (False)
         include_totals (bool): Indien True wordt een extra kolom 'Totaal' toegevoegd
                                met het totaal aantal negatieve prijzen per jaar.
+        cumulative (bool): Indien True worden de aantallen cumulatief opgeteld over de maanden.
 
     Returns:
         pd.DataFrame: pivot-tabel met kolommen = maandnamen (+ 'Totaal' indien gevraagd)
@@ -551,6 +554,10 @@ def get_negative_price_counts_pivot(
         fill_value=0
     )
 
+    # Cumulatief maken indien gevraagd
+    if cumulative:
+        pivot = pivot.cumsum(axis=1)
+
     # Indexnaam vertalen
     pivot.index.name = TRANSLATIONS["year"].get(lang, TRANSLATIONS["year"]["nl"])
 
@@ -575,8 +582,9 @@ def get_peak_renewable_production() -> pd.DataFrame:
     """
     query = """
         SELECT
-            year AS jaar,
+            --year AS jaar,
             DATE(datetime) AS datum,
+            TIME(datetime) AS tijdstip,
             Renewable_MW AS "Piek productie hernieuwbaar in MW"
         FROM(
             SELECT
