@@ -1,7 +1,7 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 09/10/2025
+Laatste update 07/11/2025
 
 Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -100,6 +100,7 @@ De verkregen data wordt in alle modellen aangevuld met extra tijdsdimensies in d
 - `minute`  
 
 Deze extra tijdsdimensies maken het mogelijk om flexibel te groeperen en te visualiseren op dag-, week-, maand-, weekdag- of uurniveau.
+Binnen dit project was dit geen noodzaak door het gebruik van pandas, maar het maakt het mogelijk om in de toekomst vlot te koppelen met Power BI.
 
 #### Toevoegen records aan database
 
@@ -126,11 +127,15 @@ Dit script kan via de Windows Taakplanner automatisch op maandelijkse basis uitg
 
 #### Logging (`dual_logger.py`)
 De klasse [`DualLogger()`](src/utils/dual_logger.py) zorgt ervoor dat alle console-uitvoer ook naar een logbestand geschreven wordt: zie [voorbeeld](Documents/log_2025-10-05.txt).  
-Hoewel de logging-module de professionele standaard is, biedt DualLogger in het kader van dit eindproject een eenvoudige, robuuste en onderhoudsarme manier om zowel standaarduitvoer als foutmeldingen en tqdm-voortgangsbalken simultaan te loggen. Voor grotere projecten zou ik uiteraard de logging-module verkiezen.
+Hoewel de logging-module de professionele standaard is, biedt DualLogger in het kader van dit eindproject een eenvoudige, robuuste en onderhoudsarme manier om zowel standaarduitvoer als foutmeldingen en TQDM-voortgangsbalken simultaan te loggen. Voor grotere projecten zou ik uiteraard de logging-module verkiezen.
 
-### Laden en visualiseren van de data
+### Laden van de data
+De module [`data_extraction.py`](src/data_extraction.py) biedt zowel ruwe dataframes als gepivotteerde tabellen. 
+Het opvragen kan in verschillende talen dankzij de vertalingen en helperfuncties in [`localization.py`](src/utils/localization.py).
+
+### Visualiseren van de data
 *Under construction*  
-In een latere fase worden interactieve grafieken en samenvattende visualisaties toegevoegd op basis van de opgeladen data.
+In een latere fase worden interactieve grafieken toegevoegd op basis van de opgeladen data.
 
 ---
 
@@ -158,9 +163,11 @@ Tabellen:
 Elke tabel bevat indexen op datetime, jaar, maand, dag, weekdag en uur, en gebruikt unieke constraints om duplicaten te vermijden.
 
 Views:
-- `v_solar`
 - `v_wind`
+- `v_wind_offshoreonshore`
+- `v_solar`
 - `v_belpex`
+Momenteel worden deze views niet gebruikt, maar ze maken een vlotte koppeling met Power BI mogelijk.
 
 ---
 
@@ -171,7 +178,7 @@ Dit vergemakkelijkt het onderhoud, hergebruik en uitbreiding van het project.
 ---
 
 ## 🧩 Herbruikbaarheid code
-De code is modulair opgebouwd, met een duidelijke scheiding tussen extractie, transformatie/opslag en — in de toekomst — visualisaties.  
+De code is modulair opgebouwd, met een duidelijke scheiding tussen downloaden, transformatie/opslag, opvragen en — in de toekomst — visualisaties.  
 Veelgebruikte logica is ondergebracht in herbruikbare hulpfuncties binnen de `utils`-map.  
 Hierdoor is het eenvoudig om het project uit te breiden met andere databronnen of opslagstructuren.
 
@@ -181,7 +188,6 @@ Hierdoor is het eenvoudig om het project uit te breiden met andere databronnen o
 
 ```
 Project/
-├── .gitignore                          # Bestanden/mappen uitgesloten van versiebeheer
 ├── auto_update.py                      # Script voor automatische updates van data
 ├── main.ipynb                          # Hoofdnotebook voor analyse en/of visualisaties
 ├── README.md                           # Beschrijving van het project
@@ -207,6 +213,7 @@ Project/
 ├── Database/
 │   └── energie_data.sqlite             # SQLite-database met gestructureerde gegevens
 ├── Documents/                          # Bijkomende documentatie van het project
+│   ├── 20250102_Press-release-Elia.pdf
 │   ├── log_2025-10-05.txt
 │   ├── Solar.json
 │   ├── tbl_belpex_prices.txt
@@ -216,11 +223,12 @@ Project/
 │   ├── Wind.json
 │   ├── Images/                         # Afbeeldingen die gebruikt worden in README.md
 │   │   ├── Banner.png
-│   │   └── ... 
+│   │   └── Taakplanner.png 
 ├── Log/                                # Logbestanden gegenereerd door auto_update.py
 │   └── log_YYYY-MM-DD.txt
 ├── src/                                # Broncode van het project (modulair opgebouwd)
 │   ├── __init__.py
+│   ├── data_extraction.py              # Ophalen van de data uit de SQLite-database
 │   ├── data_import_tools.py            # Importtools voor verschillende databronnen
 │   ├── database_tools.py               # Tools voor interactie met SQLite
 │   └── utils/                          # Algemene hulpfuncties en helpers
@@ -228,6 +236,7 @@ Project/
 │       ├── constants_inspector.py      # Inspecteert de datakolommen en types
 │       ├── decorators.py               # Decorators zoals retry_on_failure
 │       ├── dual_logger.py              # Print + logfile logging in één
+│       ├── localization.py             # Vertalingen voor tabellen en grafieken
 │       ├── package_tools.py            # Controle en installatie van dependencies
 │       └── safe_requests.py            # Veilige HTTP-requests met retries
 │       └── sqlalchemy_model_utils.py   # Hulpfuncties voor inspectie van SQLAlchemy-modellen.
@@ -237,7 +246,7 @@ Project/
 
 ## 🌐 Gebruikte bronnen en documentatie
 
-Tijdens de ontwikkeling van dit project werden volgende websites geraadpleegd:
+Tijdens de ontwikkeling van dit project werden onder andere volgende websites geraadpleegd:
 
 ### Data- en API-bronnen
 - [Elia Grid Data](https://www.elia.be/nl/grid-data) — overzichtspagina van de Elia-webinterface
