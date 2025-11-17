@@ -167,6 +167,7 @@ Views:
 - `v_wind_offshoreonshore`
 - `v_solar`
 - `v_belpex`
+
 Momenteel worden deze views niet gebruikt, maar ze maken een vlotte koppeling met Power BI mogelijk.
 
 ---
