@@ -1,7 +1,7 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 07/11/2025
+Laatste update 17/11/2025
 
 Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -204,12 +204,14 @@ Project/
 │   │   ├── 2025/
 │   │   │   ├── SolarForecast_Elia_20250425.json
 │   │   │   └── ...
+│   │   └── ...
 │   └── WindForecast/                   # Windproductievoorspellingen en - metingen (JSON & ZIP)
 │       ├── WindForecast_2020.zip
 │       ├── ...
 │       ├── 2025/
 │       │   ├── WindForecast_Elia_20250425.json
 │       │   └── ...
+│       └── ...
 ├── Database/
 │   └── energie_data.sqlite             # SQLite-database met gestructureerde gegevens
 ├── Documents/                          # Bijkomende documentatie van het project
@@ -221,9 +223,9 @@ Project/
 │   ├── tbl_wind_data.txt
 │   ├── vermogen_energie.md
 │   ├── Wind.json
-│   ├── Images/                         # Afbeeldingen die gebruikt worden in README.md
-│   │   ├── Banner.png
-│   │   └── Taakplanner.png 
+│   └── Images/                         # Afbeeldingen die gebruikt worden in README.md
+│       ├── Banner.png
+│       └── Taakplanner.png 
 ├── Log/                                # Logbestanden gegenereerd door auto_update.py
 │   └── log_YYYY-MM-DD.txt
 ├── src/                                # Broncode van het project (modulair opgebouwd)
@@ -238,7 +240,7 @@ Project/
 │       ├── dual_logger.py              # Print + logfile logging in één
 │       ├── localization.py             # Vertalingen voor tabellen en grafieken
 │       ├── package_tools.py            # Controle en installatie van dependencies
-│       └── safe_requests.py            # Veilige HTTP-requests met retries
+│       ├── safe_requests.py            # Veilige HTTP-requests met retries
 │       └── sqlalchemy_model_utils.py   # Hulpfuncties voor inspectie van SQLAlchemy-modellen.
 ```
 
@@ -262,6 +264,10 @@ Tijdens de ontwikkeling van dit project werden onder andere volgende websites ge
 - [Stack Overflow](https://stackoverflow.com/) — veelgebruikte bron voor specifieke codevragen
 - [Real Python](https://realpython.com/) — heldere tutorials en uitleg over Python-concepten
 - [How to redirect stdout and stderr to logger in Python](https://stackoverflow.com/questions/19425736/how-to-redirect-stdout-and-stderr-to-logger-in-python)
+- [GeeksforGeeks](https://www.geeksforgeeks.org/)
+- [Pandas documentation](https://pandas.pydata.org/docs/index.html)
+- [sqlite3](https://docs.python.org/3/library/sqlite3.html)
+- [Support for type hints](https://docs.python.org/3/library/typing.html)
 
 ---
 
