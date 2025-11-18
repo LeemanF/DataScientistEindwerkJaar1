@@ -1,7 +1,7 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 17/11/2025
+Laatste update 18/11/2025
 
 Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -129,13 +129,30 @@ Dit script kan via de Windows Taakplanner automatisch op maandelijkse basis uitg
 De klasse [`DualLogger()`](src/utils/dual_logger.py) zorgt ervoor dat alle console-uitvoer ook naar een logbestand geschreven wordt: zie [voorbeeld](Documents/log_2025-10-05.txt).  
 Hoewel de logging-module de professionele standaard is, biedt DualLogger in het kader van dit eindproject een eenvoudige, robuuste en onderhoudsarme manier om zowel standaarduitvoer als foutmeldingen en TQDM-voortgangsbalken simultaan te loggen. Voor grotere projecten zou ik uiteraard de logging-module verkiezen.
 
-### Laden van de data
-De module [`data_extraction.py`](src/data_extraction.py) biedt zowel ruwe dataframes als gepivotteerde tabellen. 
-Het opvragen kan in verschillende talen dankzij de vertalingen en helperfuncties in [`localization.py`](src/utils/localization.py).
+### Laden en visualiseren van de data
 
-### Visualiseren van de data
-*Under construction*  
-In een latere fase worden interactieve grafieken toegevoegd op basis van de opgeladen data.
+De module [`data_extraction.py`](src/data_extraction.py) bevat functies om gegevens uit de SQLite-database op te halen.  
+Ze levert zowel **ruwe dataframes** (onbewerkte records) als **gepivotteerde tabellen** die klaar zijn voor analyse of visualisatie. Deze tabellen vormen de basis voor alle grafieken in het project.
+
+De visualisaties worden aangeroepen via de module [`visualisation_tools.py`](src/visualisation_tools.py).  
+Deze module bevat functies voor onder andere:
+
+- Maandelijkse en jaarlijkse wind- en zonne-energieproductie.  
+- Dag-, week- en maandprofielen van Belpex-prijzen.  
+- Heatmaps, cumulatieve negatieve prijzen en bubble charts.  
+- Gecombineerde grafieken waarin prijs- en productiegegevens samen worden weergegeven.
+
+> **Opmerking:** alle visualisatiefuncties tonen de grafiek direct via Matplotlib/Seaborn en retourneren geen waarden.
+
+#### Taalondersteuning
+
+Zowel `data_extraction.py` als `visualisation_tools.py` ondersteunen meertaligheid (Nederlands / Frans / Engels).  
+Elke functie accepteert de parameter:
+```python
+lang="nl" | "fr" | "en"
+```
+De vertalingen en helperfuncties worden beheerd in [`localization.py`](src/utils/localization.py).
+Hierdoor zijn titels, labels, foutmeldingen en assen gelokaliseerd in alle visualisaties.
 
 ---
 
@@ -179,7 +196,7 @@ Dit vergemakkelijkt het onderhoud, hergebruik en uitbreiding van het project.
 ---
 
 ## 🧩 Herbruikbaarheid code
-De code is modulair opgebouwd, met een duidelijke scheiding tussen downloaden, transformatie/opslag, opvragen en — in de toekomst — visualisaties.  
+De code is modulair opgebouwd, met een duidelijke scheiding tussen downloaden, transformatie/opslag, opvragen en visualisaties.  
 Veelgebruikte logica is ondergebracht in herbruikbare hulpfuncties binnen de `utils`-map.  
 Hierdoor is het eenvoudig om het project uit te breiden met andere databronnen of opslagstructuren.
 
@@ -229,20 +246,21 @@ Project/
 │       └── Taakplanner.png 
 ├── Log/                                # Logbestanden gegenereerd door auto_update.py
 │   └── log_YYYY-MM-DD.txt
-├── src/                                # Broncode van het project (modulair opgebouwd)
-│   ├── __init__.py
-│   ├── data_extraction.py              # Ophalen van de data uit de SQLite-database
-│   ├── data_import_tools.py            # Importtools voor verschillende databronnen
-│   ├── database_tools.py               # Tools voor interactie met SQLite
-│   └── utils/                          # Algemene hulpfuncties en helpers
-│       ├── __init__.py
-│       ├── constants_inspector.py      # Inspecteert de datakolommen en types
-│       ├── decorators.py               # Decorators zoals retry_on_failure
-│       ├── dual_logger.py              # Print + logfile logging in één
-│       ├── localization.py             # Vertalingen voor tabellen en grafieken
-│       ├── package_tools.py            # Controle en installatie van dependencies
-│       ├── safe_requests.py            # Veilige HTTP-requests met retries
-│       └── sqlalchemy_model_utils.py   # Hulpfuncties voor inspectie van SQLAlchemy-modellen.
+└── src/                                # Broncode van het project (modulair opgebouwd)
+    ├── __init__.py
+    ├── data_extraction.py              # Ophalen van de data uit de SQLite-database
+    ├── data_import_tools.py            # Importtools voor verschillende databronnen
+    ├── database_tools.py               # Tools voor interactie met SQLite
+    ├── visualisation_tools.py          # Aanmaak grafieken met data van data_extraction.py
+    └── utils/                          # Algemene hulpfuncties en helpers
+        ├── __init__.py
+        ├── constants_inspector.py      # Inspecteert de datakolommen en types
+        ├── decorators.py               # Decorators zoals retry_on_failure
+        ├── dual_logger.py              # Print + logfile logging in één
+        ├── localization.py             # Vertalingen voor tabellen en grafieken
+        ├── package_tools.py            # Controle en installatie van dependencies
+        ├── safe_requests.py            # Veilige HTTP-requests met retries
+        └── sqlalchemy_model_utils.py   # Hulpfuncties voor inspectie van SQLAlchemy-modellen.
 ```
 
 ---
@@ -269,6 +287,8 @@ Tijdens de ontwikkeling van dit project werden onder andere volgende websites ge
 - [Pandas documentation](https://pandas.pydata.org/docs/index.html)
 - [sqlite3](https://docs.python.org/3/library/sqlite3.html)
 - [Support for type hints](https://docs.python.org/3/library/typing.html)
+- [Matplotlib](https://matplotlib.org/stable/) - bar plots, line plots, twin axes, ...
+- [Seaborn](https://seaborn.pydata.org/) - heatmaps
 
 ---
 

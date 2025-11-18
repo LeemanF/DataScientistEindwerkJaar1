@@ -82,6 +82,16 @@ TRANSLATIONS = {
                 "nl": "Gemiddelde Belpex-prijs per uur per maand",
                 "fr": "Prix moyen Belpex par heure et par mois",
                 "en": "Average Belpex price per hour per month"
+            },
+            "negative_price_cumulative": {
+                "nl": "Cumulatief aantal uren met negatieve Belpex-prijzen",
+                "fr": "Nombre cumulatif d'heures avec prix négatifs Belpex",
+                "en": "Cumulative number of hours with negative Belpex prices"
+            },
+            "negative_price": {
+                "nl": "Aantal uren met negatieve Belpex-prijzen",
+                "fr": "Nombre d'heures avec des prix négatifs Belpex",
+                "en": "Number of hours with negative Belpex prices"
             }
         },
         "labels": {
@@ -109,6 +119,18 @@ TRANSLATIONS = {
                 "nl": "Piek productie hernieuwbaar in MW",
                 "fr": "Production renouvelable maximale en MW",
                 "en": "Peak renewable production in MW"
+            },
+            "negative_price_cumulative": {
+                "nl": "Cumulatief aantal uren",
+                "fr": "Nombre cumulatif d'heures",
+                "en": "Cumulative hours"
+            }
+        },
+        "errors": {
+            "no_data_to_plot": {
+                "nl": "⚠️ Geen data beschikbaar om te plotten.",
+                "fr": "⚠️ Pas de données disponibles pour tracer.",
+                "en": "⚠️ No data available to plot."
             }
         },
         "year": {
