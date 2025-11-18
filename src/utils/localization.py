@@ -65,7 +65,7 @@ TRANSLATIONS = {
             },
             "combined": {
                 "nl": "Hernieuwbare energieproductie en Belpex-prijs per maand",
-                "fr": "Production d'énergie renouvelable et prix Belpex par mois",
+                "fr": "Production d'énergies renouvelables et prix Belpex par mois",
                 "en": "Renewable energy production and Belpex price per month"
             },
             "belpex": {
@@ -75,14 +75,14 @@ TRANSLATIONS = {
             },
             "belpex_hourly_weekday": {
                 "nl": "Gemiddelde Belpex-prijs per uur per weekdag",
-                "fr": "Prix moyen Belpex par heure et par jour de la semaine",
+                "fr": "Prix Belpex moyen par heure et jour de la semaine",
                 "en": "Average Belpex price per hour per weekday"
             },
             "belpex_hourly_month": {
                 "nl": "Gemiddelde Belpex-prijs per uur per maand",
                 "fr": "Prix moyen Belpex par heure et par mois",
                 "en": "Average Belpex price per hour per month"
-            },
+            }
         },
         "labels": {
             "belpex_EUR_per_MWh": {
@@ -104,6 +104,11 @@ TRANSLATIONS = {
                 "nl": "Zon (GWh)",
                 "fr": "Solaire (GWh)",
                 "en": "Solar (GWh)"
+            },
+            "renewable_peak": {
+                "nl": "Piek productie hernieuwbaar in MW",
+                "fr": "Production renouvelable maximale en MW",
+                "en": "Peak renewable production in MW"
             }
         },
         "year": {
@@ -121,10 +126,20 @@ TRANSLATIONS = {
             "fr": "Jour de la semaine",
             "en": "Weekday"
         },
+        "date": {
+            "nl": "Datum", 
+            "fr": "Date", 
+            "en": "Date"
+        },
         "hour": {
             "nl": "Uur",
             "fr": "Heure",
             "en": "Hour"
+        },
+        "time": {
+            "nl": "Tijdstip", 
+            "fr": "Heure", 
+            "en": "Time"
         },
         "totals": {
             "nl": "Totaal",

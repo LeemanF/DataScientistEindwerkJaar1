@@ -466,9 +466,9 @@ def get_combined_dataframe(fillna: bool = False, lang: LangCode = "nl", short: b
     df_belpex = get_belpex_dataframe()
 
     # Kolomnamen hernoemen voor duidelijkheid
-    df_wind.rename(columns={'total_GWh': 'wind_GWh'}, inplace=True)
-    df_solar.rename(columns={'total_GWh': 'solar_GWh'}, inplace=True)
-    df_belpex.rename(columns={'avg_price': 'belpex_EUR_per_MWh'}, inplace=True)
+    df_wind = df_wind.rename(columns={'total_GWh': 'wind_GWh'})
+    df_solar = df_solar.rename(columns={'total_GWh': 'solar_GWh'})
+    df_belpex = df_belpex.rename(columns={'avg_price': 'belpex_EUR_per_MWh'})
 
     # Datasets samenvoegen op jaar en maand
     df_compare = (
@@ -568,24 +568,28 @@ def get_negative_price_counts_pivot(
 # 🌍 PIEK HERNIEUWBARE PRODUCTIE (Wind + Zon)
 # -------------------------------------------------------------------
 
-def get_peak_renewable_production() -> pd.DataFrame:
+def get_peak_renewable_production(lang: LangCode = "nl") -> pd.DataFrame:
     """
     Haalt de jaarlijkse piekproductie van hernieuwbare energie (wind + zon) op uit de database.
 
     De query combineert wind- en zonneproductie per kwartier, berekent de som per timestamp
     en bepaalt via een windowfunctie (RANK) het hoogste productiemoment per jaar.
-    Het resultaat bevat voor elk jaar de datum en het piekvermogen in MW.
+    Het resultaat bevat voor elk jaar de datum, het tijdstip en het piekvermogen in MW.
+
+    De kolomnamen worden vertaald naar de opgegeven taal.
+
+    Args:
+        lang (LangCode): 'nl', 'fr' of 'en'
 
     Returns:
         pd.DataFrame: met kolommen:
-            ['jaar', 'datum', 'Piek productie hernieuwbaar in MW']
+            ['datum', 'tijd', 'Piek productie hernieuwbaar in MW']  # afhankelijk van taal
     """
     query = """
         SELECT
-            --year AS jaar,
-            DATE(datetime) AS datum,
-            TIME(datetime) AS tijdstip,
-            Renewable_MW AS "Piek productie hernieuwbaar in MW"
+            DATE(datetime) AS date,
+            TIME(datetime) AS time,
+            Renewable_MW AS "renewable_peak"
         FROM(
             SELECT
                 w.year,
@@ -609,5 +613,11 @@ def get_peak_renewable_production() -> pd.DataFrame:
     if df is None or df.empty:
         print("⚠️ Geen resultaten gevonden voor piekproductie hernieuwbaar.")
         return pd.DataFrame()
+
+    df = df.rename(columns={
+            "date": TRANSLATIONS["date"][lang],
+            "time": TRANSLATIONS["time"][lang],
+            "renewable_peak": TRANSLATIONS["labels"]["renewable_peak"][lang],
+        })
 
     return df
