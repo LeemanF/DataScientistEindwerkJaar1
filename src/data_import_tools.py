@@ -22,6 +22,7 @@ import time
 import shutil
 from datetime import datetime
 import zipfile
+from typing import Optional, List, Dict, Any, Tuple, Literal
 
 from src.utils.package_tools import update_or_install_if_missing
 from src.utils.decorators import retry_on_failure
@@ -43,14 +44,28 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # ----------- Data Import Functies -----------
 
-def get_days_in_month(year, month):
+def get_days_in_month(
+    year: int, 
+    month: int
+) -> List[str]:
     """
     Geef een lijst van alle dagen (YYYY-MM-DD) in de opgegeven maand van een bepaald jaar terug.
+
+    Parameters:
+        year (int): Het jaar (bijv. 2025).
+        month (int): De maand als integer van 1 t/m 12.
+
+    Returns:
+        List[str]: Een lijst met datums in het formaat 'YYYY-MM-DD'.
     """
     _, num_days = calendar.monthrange(year, month)
     return [f"{year}-{month:02d}-{day:02d}" for day in range(1, num_days + 1)]
 
-def fetch_forecast_day(url, date_str, extra_filters=None):
+def fetch_forecast_day(
+    url: str,
+    date_str: str,
+    extra_filters: Optional[List[str]] = None
+) -> List[Dict[str, Any]]:
     """
     Haal alle records (in batches) van de Elia API op voor een specifieke dag.
 
@@ -109,7 +124,10 @@ def fetch_forecast_day(url, date_str, extra_filters=None):
 
     return all_records
 
-def save_forecast_json(output_path, records):
+def save_forecast_json(
+    output_path: str,
+    records: List[Dict[str, Any]]
+) -> None:
     """
     Sla een lijst van records op in een JSON-bestand.
 
@@ -121,7 +139,14 @@ def save_forecast_json(output_path, records):
         json.dump(records, f, ensure_ascii=False, indent=2)
 
 @retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
-def import_forecast(year, month, url, year_folder, prefix, extra_filters=None):
+def import_forecast(
+    year: int,
+    month: int,
+    url: str,
+    year_folder: str,
+    prefix: str,
+    extra_filters: Optional[List[str]] = None
+) -> None:
     """
     Download en sla forecast-data (wind of zon) op voor een opgegeven maand uit de Elia Open Data API.
 
@@ -173,7 +198,10 @@ def import_forecast(year, month, url, year_folder, prefix, extra_filters=None):
         else:
             print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ Geen data voor {date_str}")
 
-def import_wind(year, month):
+def import_wind(
+    year: int,
+    month: int
+) -> None:
     """
     Download en sla windforecast-data op voor een opgegeven maand via `import_forecast`.
 
@@ -188,7 +216,10 @@ def import_wind(year, month):
     folder = os.path.join(WIND_FORECAST_DIR, str(year))
     import_forecast(year, month, url, folder, "WindForecast_Elia")
 
-def import_solar(year, month):
+def import_solar(
+    year: int,
+    month: int
+) -> None:
     """
     Download en sla zonneforecast-data op voor een opgegeven maand via `import_forecast`.
 
@@ -199,11 +230,14 @@ def import_solar(year, month):
     Bestanden worden opgeslagen in: <SOLAR_FORECAST_DIR>/<jaar>/SolarForecast_Elia_YYYYMMDD.json
     """
 
-    url = url = "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods032/records"
+    url = "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods032/records"
     folder = os.path.join(SOLAR_FORECAST_DIR, str(year))
     import_forecast(year, month, url, folder, "SolarForecast_Elia", extra_filters=['region:"Belgium"'])
 
-def get_belpex_date_range(year, month):
+def get_belpex_date_range(
+    year: int,
+    month: int
+) -> Tuple[str, str]:
     """
     Bepaal de 'from' en 'until' datums voor de Belpex-export.
 
@@ -229,7 +263,9 @@ def get_belpex_date_range(year, month):
 
     return from_date, until_date
 
-def prepare_download_dir(base_dir):
+def prepare_download_dir(
+    base_dir: str
+) -> str:
     """
     Maak de downloadmap aan en verwijder eventueel oud bestand 'BelpexFilter.csv'.
 
@@ -250,7 +286,9 @@ def prepare_download_dir(base_dir):
 
     return download_dir
 
-def setup_chrome_driver(download_dir):
+def setup_chrome_driver(
+    download_dir: str
+) -> webdriver.Chrome:
     """
     Configureer een headless Chrome-driver voor automatisch downloaden.
 
@@ -272,7 +310,11 @@ def setup_chrome_driver(download_dir):
     options.add_experimental_option("prefs", prefs)
     return webdriver.Chrome(options=options)
 
-def download_belpex_csv(driver, from_date, until_date):
+def download_belpex_csv(
+    driver: webdriver.Chrome,
+    from_date: str,
+    until_date: str
+) -> None:
     """
     Automatiseer het invullen van datums en exporteren van de Belpex-data naar CSV.
 
@@ -323,7 +365,11 @@ def download_belpex_csv(driver, from_date, until_date):
     print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⏳ Wacht op download...")
     time.sleep(5)
 
-def rename_belpex_file(download_dir, year, month):
+def rename_belpex_file(
+    download_dir: str,
+    year: int,
+    month: int
+) -> None:
     """
     Hernoem BelpexFilter.csv naar Belpex_YYYYMM.csv indien download gelukt is.
 
@@ -347,7 +393,10 @@ def rename_belpex_file(download_dir, year, month):
         print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ Download mislukt.")
 
 @retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
-def import_belpex(year, month):
+def import_belpex(
+    year: int,
+    month: int
+) -> None:
     """
     Download Belpex-spotmarktprijzen via browserautomatisering (Selenium).
 
@@ -387,7 +436,10 @@ def import_belpex(year, month):
 
 # ----------- Zip Functies -----------
 
-def file_needs_zip(zip_path, folder_path):
+def file_needs_zip(
+    zip_path: str,
+    folder_path: str
+) -> bool:
     """
     Controleer of een ZIP-bestand ouder is dan de JSON-bestanden in een opgegeven map.
 
@@ -416,7 +468,9 @@ def file_needs_zip(zip_path, folder_path):
                     return True  # Bestand is recenter dan de zip → zip nodig
     return False  # Alles is ouder → zip is up-to-date
 
-def zip_forecast_data(forecast_types=["SolarForecast", "WindForecast"]):
+def zip_forecast_data(
+    forecast_types: List[str] = ["SolarForecast", "WindForecast"]
+) -> None:
     """
     Maak ZIP-bestanden aan voor zonne- en windbestanden (JSON) per jaar en per type.
 
@@ -467,7 +521,10 @@ def zip_forecast_data(forecast_types=["SolarForecast", "WindForecast"]):
 
             print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -    ✅ Klaar: {zip_filename}")
 
-def unzip_forecast_data(zip_path, extract_to=None):
+def unzip_forecast_data(
+    zip_path: str,
+    extract_to: Optional[str] = None
+) -> None:
     """
     Pak een zipbestand met forecastgegevens uit, met behoud van tijdstempels.
 
@@ -496,7 +553,9 @@ def unzip_forecast_data(zip_path, extract_to=None):
             os.utime(extracted_path, (date_time, date_time))
             print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ✅ Uitgepakt: {member.filename}")
 
-def unzip_all_forecast_zips(forecast_types=["SolarForecast", "WindForecast"]):
+def unzip_all_forecast_zips(
+    forecast_types: List[str] = ["SolarForecast", "WindForecast"]
+) -> None:
     """
     Pak alle zipbestanden uit in opgegeven forecastfolders.
 
@@ -529,7 +588,9 @@ def unzip_all_forecast_zips(forecast_types=["SolarForecast", "WindForecast"]):
 
 # ----------- Bijwerken van de data-bestanden -----------
 
-def get_latest_available_year_month(today=None):
+def get_latest_available_year_month(
+    today: Optional[datetime] = None
+) -> Tuple[int, int]:
     """
     Bepaal het meest recente jaar/maand waarvoor data beschikbaar is.
     Pas vanaf de 5de dag is de info van de vorige maand beschikbaar.
@@ -556,7 +617,11 @@ def get_latest_available_year_month(today=None):
 
     return latest_available_year, latest_available_month
 
-def update_data(from_year=None, to_year=None, data_type='all'):
+def update_data(
+    from_year: Optional[int] = None,
+    to_year: Optional[int] = None,
+    data_type: Literal['wind', 'solar', 'belpex', 'all'] = 'all'
+) -> None:
     """
     Update wind-, zonne- en/of Belpex-data tussen opgegeven jaartallen.
     Hierbij worden eerste de bestaande zip-bestanden uitgepakt.
@@ -566,7 +631,8 @@ def update_data(from_year=None, to_year=None, data_type='all'):
     Parameters:
     - from_year (int, optional): Startjaar. Default = vorig jaar.
     - to_year (int, optional): Eindjaar. Default = huidig jaar.
-    - data_type (str, optional): 'wind', 'solar', 'belpex' of 'all'. Default = 'all'.
+    - data_type (Literal['wind', 'solar', 'belpex', 'all'], optional):
+        Kies welke datasets worden geüpdatet. Default = 'all'.
     """
 
     today = datetime.today()

@@ -19,6 +19,7 @@ import csv
 from datetime import datetime
 import re
 from src.utils.package_tools import update_or_install_if_missing
+from typing import Dict, Any, Optional, List, Type, Literal
 
 # Controleer en installeer indien nodig de vereiste modules
 # Dit is een vangnet als de gebruiker geen rekening houdt met requirements.txt.
@@ -28,7 +29,8 @@ update_or_install_if_missing("tqdm","4.60.0")
 # Pas na installatie importeren
 from tqdm import tqdm
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, UniqueConstraint, Index, text
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import declarative_base, sessionmaker, DeclarativeMeta
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from settings import DB_FILE, SOLAR_FORECAST_DIR, WIND_FORECAST_DIR, BELPEX_DIR
 
@@ -168,7 +170,9 @@ class BelpexPrice(Base):
 # Creëer tabellen op basis van de klassen die afstammen van de klasse Base
 Base.metadata.create_all(engine)
 
-def create_views(engine):
+def create_views(
+    engine: Engine
+) -> None:
     """
     Maakt of vernieuwt SQL-views voor wind-, zonne-energie- en Belpex-gegevens.
 
@@ -225,7 +229,9 @@ def create_views(engine):
 
 create_views(engine)
 
-def parse_record(record):
+def parse_record(
+    record: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
     """
     Zet een record om naar het juiste datetime-formaat en voegt datumcomponenten toe.
 
@@ -248,7 +254,10 @@ def parse_record(record):
     except Exception as e:
         return None
 
-def insert_batch(batch, model):
+def insert_batch(
+    batch: List[Dict[str, Any]],
+    model: Type[DeclarativeMeta]
+) -> int:
     """
     Voegt een batch records toe aan de database via een `INSERT OR IGNORE` statement.
 
@@ -278,7 +287,11 @@ def insert_batch(batch, model):
         session.commit()
         return inserted
 
-def process_directory(path, model, batch_size=1000):
+def process_directory(
+    path: str,
+    model: Type[DeclarativeMeta],
+    batch_size: int = 1000
+) -> None:
     """
     Verwerkt alle JSON-bestanden in submappen (per jaar) van een opgegeven map en slaat ze batchgewijs op in de database.
     
@@ -334,7 +347,10 @@ def process_directory(path, model, batch_size=1000):
         else:
             print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Jaar {year_dir} van {model.__name__} is bijgewerkt in de database.\n")
  
-def process_belpex_directory(path, batch_size=1000):
+def process_belpex_directory(
+    path: str,
+    batch_size: int = 1000
+) -> None:
     """
     Doorloopt een directory met CSV-bestanden met Belpex-data en voegt records toe aan de database.
 
@@ -385,7 +401,9 @@ def process_belpex_directory(path, batch_size=1000):
     else:
         print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Belpexprijzen zijn bijgewerkt in de database.\n")
 
-def to_sql(data_type="all"):
+def to_sql(
+    data_type: Literal["solar", "wind", "belpex", "all"] = "all"
+) -> None:
     """
     Laadt gegevens vanuit vaste mappenstructuur en schrijft deze naar de SQLite-database.
     Je kunt zelf kiezen welke datasets verwerkt worden:
