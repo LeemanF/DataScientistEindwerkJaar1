@@ -14,8 +14,16 @@ Voorbeeldgebruik:
 
 import time
 import requests
+from typing import Optional, Dict, Union
 
-def safe_requests_get(url, params=None, headers=None, tries=3, delay=2, timeout=10):
+def safe_requests_get(
+    url: str,
+    params: Optional[Dict[str, str]] = None,
+    headers: Optional[Dict[str, str]] = None,
+    tries: int = 3,
+    delay: Union[int, float] = 2,
+    timeout: Union[int, float] = 10
+) -> requests.Response:
     """
     Uitgebreide en veilige versie van requests.get() met ingebouwde retry-logica.
 

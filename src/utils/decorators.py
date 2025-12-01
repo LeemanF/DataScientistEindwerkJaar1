@@ -14,8 +14,17 @@ In de toekomst kunnen hier meer decorators toegevoegd worden.
 
 import functools
 import time
+from typing import Callable, Tuple, Type, Any
 
-def retry_on_failure(tries=3, delay=2, backoff=1, allowed_exceptions=(Exception,)):
+def retry_on_failure(
+    tries: int = 3,
+    delay: float = 2,
+    backoff: float = 1,
+    allowed_exceptions: Tuple[Type[BaseException], ...] = (Exception,)
+) -> Callable[
+        [Callable[..., Any]],  # Input van de decorator: een functie die willekeurige arguments (*args, **kwargs) accepteert
+        Callable[..., Any]     # Output van de decorator: een nieuwe functie met exact dezelfde signature
+    ]:
     """
     Decorator om een functie meerdere keren opnieuw uit te voeren wanneer er een fout optreedt.
 
@@ -33,6 +42,12 @@ def retry_on_failure(tries=3, delay=2, backoff=1, allowed_exceptions=(Exception,
     - allowed_exceptions (tuple): Een tuple van uitzonderingen waarvoor een retry toegestaan is.
                                   Standaard: (Exception,), wat alle standaardfouten omvat.
 
+    Returns:
+    - Callable[[Callable[..., Any]], Callable[..., Any]]:
+        Een decorator-functie die de originele functie neemt en een nieuwe functie teruggeeft.
+        De nieuwe functie voert de originele functie uit en probeert deze automatisch opnieuw
+        als een van de `allowed_exceptions` optreedt, volgens de parameters `tries`, `delay` en `backoff`.
+
     Intern maakt de wrapper gebruik van lokale kopieën van de parameters `_tries` en `_delay`
     om te voorkomen dat de oorspronkelijke decoratorwaarden (die gedeeld worden door alle oproepen)
     overschreven of beïnvloed worden tijdens het uitvoeren van retries.
@@ -41,13 +56,12 @@ def retry_on_failure(tries=3, delay=2, backoff=1, allowed_exceptions=(Exception,
     @retry_on_failure(tries=5, delay=1, backoff=2, allowed_exceptions=(ConnectionError,))
     def fetch_data():
         ...
-
     """
-    def decorator(func):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         # Zorgt ervoor dat de metadata (naam, docstring, enz.) van de originele functie 
         # behouden blijft in de gegenereerde wrapperfunctie.
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Lokale kopieën maken om te vermijden dat de originele decorator-argumenten 
             # gewijzigd worden tijdens herhaalde pogingen
             _tries, _delay = tries, delay

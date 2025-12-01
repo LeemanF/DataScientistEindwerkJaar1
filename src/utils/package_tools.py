@@ -16,8 +16,13 @@ import importlib
 import importlib.util
 import subprocess
 import sys
+from typing import Optional
+import types
 
-def update_or_install_if_missing(package_name, min_version=None):
+def update_or_install_if_missing(
+    package_name: str,
+    min_version: Optional[str] = None
+) -> types.ModuleType:
     """
     Zorgt ervoor dat een Python-package geïnstalleerd is, en indien gewenst,
     dat het voldoet aan een minimale versie.
@@ -34,7 +39,7 @@ def update_or_install_if_missing(package_name, min_version=None):
     - module: Het geïmporteerde package-object (na installatie of upgrade indien nodig).
     """
 
-    def parse_version(v, width=None):
+    def parse_version(v: str, width: Optional[int] = None) -> list[int]:
         """
         Zet een versie-string (bv. '2.10.3' of '2.25.0.1') om naar een lijst van gehele getallen.
         Indien 'width' is opgegeven, wordt de lijst opgevuld tot die lengte met nullen.
@@ -60,7 +65,7 @@ def update_or_install_if_missing(package_name, min_version=None):
             return int_parts + [0] * (width - len(int_parts))
         return int_parts
 
-    def is_version_at_least(current, minimum):
+    def is_version_at_least(current: str, minimum: str) -> bool:
         """
         Vergelijkt twee versie-strings op basis van numerieke onderdelen.
         De kortere lijst wordt opgevuld met nullen zodat beide even lang zijn.
