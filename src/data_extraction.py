@@ -356,8 +356,7 @@ def get_belpex_dataframe() -> pd.DataFrame:
 
 def get_belpex_pivot(
     lang: LangCode = "nl",
-    short: bool = True,
-    include_totals: bool = False
+    short: bool = True
 ) -> pd.DataFrame:
     """
     Maakt een pivot-tabel voor Belpex-prijzen.
@@ -365,17 +364,12 @@ def get_belpex_pivot(
     Rijen stellen jaren voor; kolommen zijn maandnamen in de opgegeven taal
     (kort of volledig). De waarden zijn gemiddelde maandprijzen in EUR/MWh.
 
-    Optioneel kan een kolomtotaal worden toegevoegd.
-
     Args:
         lang (LangCode): taalcode ('nl', 'fr' of 'en')
         short (bool): gebruik korte maandnamen (True) of volledige (False)
-        include_totals (bool): Indien True wordt een extra kolom 'Totaal' toegevoegd
-                               met de gemiddelde prijs van alle maanden per jaar.
 
     Returns:
-        pd.DataFrame: pivot-tabel met Belpex-prijzen per maand,
-                      eventueel aangevuld met een 'Totaal'-kolom.
+        pd.DataFrame: pivot-tabel met Belpex-prijzen per maand.
     """
     df = get_belpex_dataframe()
     return make_pivot(
@@ -384,8 +378,7 @@ def get_belpex_pivot(
         value_col="avg_price",
         aggfunc="mean",
         lang=lang,
-        short=short,
-        include_totals=include_totals
+        short=short
     )
 
 
