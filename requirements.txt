@@ -21,6 +21,14 @@ pandas>=1.3.0              # DataFrames: tabelformaat voor data cleaning, aggreg
 numpy>=1.21.0              # Numerieke berekeningen, vectorisatie en ondersteuning voor Pandas
 
 # -----------------------------
+# Excel-ondersteuning
+# -----------------------------
+openpyxl>=3.1.0            # Vereist voor het inlezen van .xlsx-bestanden via pandas
+                           # - Wordt NIET automatisch mee geïnstalleerd met pandas
+                           # - Nodig voor conversie van Belpex Excel-downloads naar CSV
+                           # - Versie 3.1.x biedt meer stabiliteit en compatibiliteit met recente pandas-versies
+
+# -----------------------------
 # Visualisatie
 # -----------------------------
 matplotlib>=3.5.0          # Basisgrafieken: line, bar, stacked bar, scatter, etc.

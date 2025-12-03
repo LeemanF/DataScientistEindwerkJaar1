@@ -33,6 +33,8 @@ from settings import HTTP_TIMEOUT, DEFAULT_ATTEMPTS, RETRY_DELAY, BELPEX_DIR, SO
 update_or_install_if_missing("requests","2.25.0")
 update_or_install_if_missing("selenium","4.1.0")
 update_or_install_if_missing("webdriver_manager","3.5.0")
+update_or_install_if_missing("pandas","1.3.0")
+update_or_install_if_missing("openpyxl","3.1.0")
 
 # Pas na installatie importeren
 from src.utils.safe_requests import safe_requests_get
@@ -41,6 +43,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import pandas as pd
 
 # ----------- Data Import Functies -----------
 
@@ -246,10 +249,20 @@ def get_belpex_date_range(
     - month (int): De maand waarvoor de datums bepaald worden.
 
     Returns:
-    - tuple[str, str]: Een tuple met (from_date, until_date) in formaat dd/mm/yyyy.
+    - tuple[str, str]: Een tuple met (from_date, until_date) in formaat yyyy-mm-dd.
     """
 
-    from_date = f"01/{month:02d}/{year}"
+    # Bepaal de laatste dag van de vorige maand voor de 'from_date'
+    if month == 1:
+        previous_month = 12
+        previous_year = year - 1
+    else:
+        previous_month = month - 1
+        previous_year = year
+    _, days_previous_month = calendar.monthrange(previous_year, previous_month)
+    previous_month_last_day = datetime(previous_year, previous_month, days_previous_month)
+    
+    from_date = previous_month_last_day.strftime("%Y-%m-%d")
 
     # Bepaal de eerste dag van de volgende maand voor de 'until_date'
     if month == 12:
@@ -259,32 +272,33 @@ def get_belpex_date_range(
         next_month = month + 1
         next_year = year
     next_month_first_day = datetime(next_year, next_month, 1)
-    until_date = next_month_first_day.strftime("%d/%m/%Y")
+    until_date = next_month_first_day.strftime("%Y-%m-%d")
 
     return from_date, until_date
 
 def prepare_download_dir(
     base_dir: str
-) -> str:
+) -> Tuple[str, str]:
     """
-    Maak de downloadmap aan en verwijder eventueel oud bestand 'BelpexFilter.csv'.
+    Maak indien nodig de downloadmap aan en verwijder eventueel oud bestand 'quarter-hourly-spot-belpex--c--elexys.xlsx'.
 
     Parameters:
     - base_dir (str): Het basispad naar de downloadmap.
 
     Returns:
-    - str: Het pad naar de downloadmap (als string).
+    - tuple[str, str]: Een tuple met het pad naar de downloadmap (als string) en het bestand (als string).
     """
 
     download_dir = str(base_dir)
     os.makedirs(download_dir, exist_ok=True)
 
-    filter_path = os.path.join(download_dir, "BelpexFilter.csv")
-    if os.path.exists(filter_path):
-        os.remove(filter_path)
-        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ Niet hernoemde bestand BelpexFilter.csv werd verwijderd.")
+    filename = "quarter-hourly-belpex--c--elexys.xlsx"
+    file_path = os.path.join(download_dir, filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ Niet hernoemde bestand {filename} werd verwijderd.")
 
-    return download_dir
+    return download_dir, file_path
 
 def setup_chrome_driver(
     download_dir: str
@@ -310,68 +324,65 @@ def setup_chrome_driver(
     options.add_experimental_option("prefs", prefs)
     return webdriver.Chrome(options=options)
 
-def download_belpex_csv(
+def download_belpex_xlsx(
     driver: webdriver.Chrome,
     from_date: str,
     until_date: str
 ) -> None:
     """
-    Automatiseer het invullen van datums en exporteren van de Belpex-data naar CSV.
-
-    Parameters:
-    - driver (webdriver.Chrome): De actieve Selenium-webdriver.
-    - from_date (str): Startdatum in formaat dd/mm/yyyy.
-    - until_date (str): Einddatum in formaat dd/mm/yyyy.
-
-    Returns:
-    - None
+    Download Excel Belpex-bestanden via Elexys.
     """
 
-    # Ga naar de website
-    driver.get("https://my.elexys.be/MarketInformation/SpotBelpex.aspx")
+    url = (f"https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be?from={from_date}&until={until_date}")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       🌐 Open URL: {url}")
+    driver.get(url)
 
-    # Wacht op beschikbaarheid van datumvelden
+    # Sluit interactieve popup indien aanwezig
+    try:
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⏳ Controleren op popup...")
+
+        wait.until(EC.element_to_be_clickable((By.ID, "interactive-close-button")))
+        close_btn = driver.find_element(By.ID, "interactive-close-button")
+
+        driver.execute_script("arguments[0].click();", close_btn)
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ Popup gesloten")
+
+        time.sleep(1)  # Mini delay voor stabiliteit
+    except Exception:
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ✔️ Geen popup gevonden")
+    
     wait = WebDriverWait(driver, 20)
-    wait.until(EC.presence_of_element_located((By.ID, "contentPlaceHolder_fromASPxDateEdit_I")))
+    
+    time.sleep(2)
 
-    # Vul de datums in
-    from_input = driver.find_element(By.ID, "contentPlaceHolder_fromASPxDateEdit_I")
-    until_input = driver.find_element(By.ID, "contentPlaceHolder_untilASPxDateEdit_I")
+    # Zoek ALLE exportknoppen
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⏳ Wachten op exportknoppen...")
+    buttons = wait.until(
+        EC.presence_of_all_elements_located(
+            (By.CSS_SELECTOR, "a.c-insights-export-button")
+        )
+    )
 
-    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       📆 Vul 'From' datum in: {from_date}")
-    from_input.clear()
-    from_input.send_keys(from_date)
+    # Vind de juiste knop op basis van tekst
+    for btn in buttons:
+        text = btn.text.strip().lower()
 
-    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       📆 Vul 'Until' datum in: {until_date}")
-    until_input.clear()
-    until_input.send_keys(until_date)
-
-    # Klik op "Show data"
-    show_data_button = driver.find_element(By.ID, "contentPlaceHolder_refreshBelpexCustomButton_I")
-    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       🚀 Klik op 'Show data'")
-    driver.execute_script("arguments[0].click();", show_data_button)
-
-    # Wacht tot de resultaten zichtbaar zijn in de tabel
-    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⏳ Wacht op zoekresultaten...")
-    wait.until(EC.presence_of_element_located((By.ID, "contentPlaceHolder_belpexFilterGrid_DXMainTable")))
-    time.sleep(5)  # Extra wachttijd voor stabiliteit
-
-    # Klik op de juiste export-div
-    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       🚀 Klik op 'Exporteer naar CSV'")
-    export_button_div = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_contentPlaceHolder_GridViewExportUserControl1_csvExport")))
-    driver.execute_script("arguments[0].click();", export_button_div)
+        if "excel" in text:
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       🚀 Klik op 'Export Excel'")
+            # Klik op de juiste export-div
+            driver.execute_script("arguments[0].click();", btn)
 
     # Wacht op de download
     print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⏳ Wacht op download...")
-    time.sleep(5)
+    time.sleep(5)  # Wacht op downloads
 
 def rename_belpex_file(
-    download_dir: str,
+    download_file: str,
     year: int,
     month: int
 ) -> None:
     """
-    Hernoem BelpexFilter.csv naar Belpex_YYYYMM.csv indien download gelukt is.
+    Hernoem quarter-hourly-spot-belpex--c--elexys.xlsx naar Belpex_YYYYMM.xlsx indien download gelukt is.
 
     Parameters:
     - download_dir (str): Het pad waar de download zich bevindt.
@@ -382,17 +393,138 @@ def rename_belpex_file(
     - None
     """
 
-    new_filename = f"Belpex_{year}{month:02d}.csv"
-    filter_path = os.path.join(download_dir, "BelpexFilter.csv")
+    new_filename = f"Belpex_{year}{month:02d}.xlsx"
+    download_dir = os.path.dirname(download_file)
     new_path = os.path.join(download_dir, new_filename)
 
-    if os.path.exists(filter_path):
-        os.rename(filter_path, new_path)
+    if os.path.exists(download_file):
+        os.rename(download_file, new_path)
         print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ✅ Gedownload en hernoemd naar: {new_filename}")
     else:
         print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ Download mislukt.")
 
-@retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY)
+def convert_elexys_xlsx_to_csv(xlsx_path: str, csv_path: str, year: int, month: int) -> None:
+    """
+    Converteer een gedownload Elexys XLSX-bestand naar het oude CSV-formaat,
+    waarbij kwartierprijzen worden omgerekend naar uurprijzen (gemiddelde per uur).
+
+    Deze functie:
+    - Controleert of het XLSX-bestand geldige data bevat.
+    - Filtert de rijen op het opgegeven jaar (`year`) en maand (`month`) om consistentie
+      met de historische data van de oude website te behouden.
+    - Converteert kwartierwaarden naar uurwaarden.
+    - Converteert de kolommen 'Datum' en 'Time' naar één datetime-kolom in formaat dd/mm/YYYY HH:MM:SS.
+    - Voegt een extra euro-teken toe aan de kolom 'Euro'.
+    - Schrijft de output naar CSV met ';' separator en ANSI (cp1252) encoding.
+    - Indien er geen data beschikbaar is, wordt CSV niet aangemaakt, en er volgt een melding.
+
+    Parameters:
+    - xlsx_path (str): Pad naar het Elexys XLSX-bestand dat geconverteerd moet worden.
+    - csv_path (str): Pad waar het geconverteerde CSV-bestand opgeslagen wordt.
+    - year (int): Jaar waarvoor de data behouden moet blijven in de output.
+    - month (int): Maand waarvoor de data behouden moet blijven in de output (1 t.e.m. 12).
+
+    Returns:
+    - None
+
+    Voorbeeld (Excel input):
+        Datum        Time     Euro
+        31/10/2025   23u45    € 31,86
+        31/10/2025   23u30    € 46,05
+        31/10/2025   23u15    € 56,27
+        31/10/2025   23u00    € 75,00
+
+    Output (CSV):
+        Date;Euro
+        31/10/2025 23:00:00;€ € 52,30
+    """
+
+    # Probeer Excel in te lezen
+    try:
+        df = pd.read_excel(xlsx_path, skiprows=2)
+    except Exception as e:
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⚠️  Kon Excel-bestand '{os.path.basename(xlsx_path)}' niet inlezen: {e}")
+        return
+
+    # Verwijder volledig lege rijen
+    df = df.dropna(how="all")
+
+    # Controleren of het bestand info bevat
+    if df.empty:
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⚠️  Geen data beschikbaar in XLSX-bestand '{os.path.basename(xlsx_path)}' — conversie overgeslagen.")
+        return
+
+    # Kolomnamen opschonen
+    df.columns = [col.strip() for col in df.columns]
+
+    # Controleren of vereiste kolommen aanwezig zijn
+    required_cols = {"Datum", "Time", "Euro"}
+    if not required_cols.issubset(df.columns):
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⚠️  Vereiste kolommen ontbreken in XLSX-bestand '{os.path.basename(xlsx_path)}' — gevonden kolommen: {list(df.columns)}")
+        return
+
+    # Titel verwijderen indien aanwezig
+    if df.columns[0].lower().startswith("quarter"):
+        df = df.iloc[1:].dropna(how="all").reset_index(drop=True)
+
+    if df.empty:
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⚠️  XLSX '{os.path.basename(xlsx_path)}' bevat geen datarijen na verwijderen titel — conversie overgeslagen.")
+        return
+
+    # Converteer Time (bv. '0u45') naar '00:45'
+    def convert_time(t: str) -> str:
+        t = t.strip().lower()
+        if "u" in t:
+            hour, minute = t.split("u")
+            return f"{int(hour):02d}:{int(minute):02d}"
+        return t
+
+    # Combineer Datum + Time
+    try:
+        df["Time"] = df["Time"].astype(str).apply(convert_time)
+        df["Date"] = pd.to_datetime(df["Datum"] + " " + df["Time"], format="%d/%m/%Y %H:%M")
+    except Exception as e:
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⚠️  Datum/Tijd kon niet worden geconverteerd: {e}")
+        return
+
+    # Filter enkel rijen voor het juiste jaar + maand
+    df = df[(df["Date"].dt.year == year) & (df["Date"].dt.month == month)]
+
+    # Controleer of na filtering nog rijen beschikbaar zijn
+    if df.empty:
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⚠️  Geen data voor {year}-{month:02d} — CSV niet aangemaakt.")
+        return
+
+    # Euro converteren naar numeriek
+    df["Euro"] = df["Euro"].astype(str).str.replace("€", "").str.replace(",", ".").str.strip()
+    df["Euro"] = pd.to_numeric(df["Euro"], errors="coerce")
+
+    df = df.dropna(subset=["Euro"])
+    if df.empty:
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⚠️  Geen data voor {year}-{month:02d} — CSV niet aangemaakt.")
+        return
+
+    # Uur afleiden
+    df["Hour"] = df["Date"].dt.floor("h")  # afronden naar uur
+
+    # Gemiddelde per uur
+    df_hourly = df.groupby("Hour", as_index=False)["Euro"].mean().sort_values("Hour", ascending=False)
+
+    # Omzetten naar vereiste layout: dd/mm/YYYY HH:MM:SS
+    df_hourly["Date"] = df_hourly["Hour"].dt.strftime("%d/%m/%Y %H:%M:%S")
+
+    # Euro weer formatteren in de oude layout
+    df_hourly["Euro"] = df_hourly["Euro"].apply(lambda x: f"€ € {x:.2f}".replace(".", ","))
+
+    # Output
+    df_out = df_hourly[["Date", "Euro"]]
+
+    # Wegschrijven als ANSI (cp1252)
+    df_out.to_csv(csv_path, sep=";", index=False, encoding="cp1252")
+
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       💾 Conversie naar CSV voltooid: '{os.path.basename(csv_path)}'")
+
+@retry_on_failure(tries=DEFAULT_ATTEMPTS, delay=RETRY_DELAY, backoff=2)
 def import_belpex(
     year: int,
     month: int
@@ -402,7 +534,7 @@ def import_belpex(
 
     Deze functie automatiseert het downloaden van maandelijkse Belpex-spotmarktprijzen
     van de Elexys-website met behulp van een headless (onzichtbare) Chrome-browser.
-    De resultaten worden gedownload als CSV en opgeslagen met bestandsnaam 'Belpex_YYYYMM.csv'.
+    De resultaten worden gedownload als xlsx en opgeslagen met bestandsnaam 'Belpex_YYYYMM.xslx'.
 
     Parameters:
     - year (int): Het jaar waarvoor data opgehaald moet worden.
@@ -410,25 +542,34 @@ def import_belpex(
 
     Opmerkingen:
     - Gebruikt een headless Chrome-browser (geen visueel venster).
-    - Downloadlocatie: ./Data/Belpex/Belpex_YYYYMM.csv
+    - Downloadlocatie: ./Data/Belpex/Belpex_YYYYMM.xlsx
     - Indien het bestand reeds bestaat, wordt het niet opnieuw gedownload.
     """
     
     from_date, until_date = get_belpex_date_range(year, month)
-    download_dir = prepare_download_dir(BELPEX_DIR)
-    new_filename = f"Belpex_{year}{month:02d}.csv"
+    download_dir, download_file = prepare_download_dir(BELPEX_DIR)
+    new_filename_csv = f"Belpex_{year}{month:02d}.csv"
+    new_file_csv_path = os.path.join(download_dir, new_filename_csv)
+    new_filename_xlsx = f"Belpex_{year}{month:02d}.xlsx"
+    new_file_xlsx_path = os.path.join(download_dir, new_filename_xlsx)
 
-    # Indien het bestand reeds bestaat, sla deze maand over
-    if new_filename in os.listdir(download_dir):
-        #print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Bestand bestaat al: {new_filename}")
+    # Indien het csv-bestand reeds bestaat, sla deze maand over
+    if os.path.exists(new_file_csv_path):
+        #print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Bestand bestaat al: {new_filename_csv}")
         return
-    
+
+    # xlxs-bestand verwijderen als dit bestaat
+    if os.path.exists(new_file_xlsx_path):
+        os.remove(new_file_xlsx_path)
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ❌ {new_filename_xlsx} werd verwijderd.")
+
     driver = setup_chrome_driver(download_dir)
 
     try:
         print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -       ⬇️ Starten met het opvragen Belpex-gegevens periode {month}/{year}")
-        download_belpex_csv(driver, from_date, until_date)
-        rename_belpex_file(download_dir, year, month)
+        download_belpex_xlsx(driver, from_date, until_date)
+        rename_belpex_file(download_file, year, month)
+        convert_elexys_xlsx_to_csv(new_file_xlsx_path, new_file_csv_path, year=year, month=month)
     finally:
         # Sluit de browser
         driver.quit()
