@@ -22,12 +22,14 @@ Functies:
 # -------------------------------------------------------------------
 
 import sqlite3
+import os
 from typing import Literal, Union, List
 from settings import DB_FILE
 from datetime import datetime
 from src.utils.localization import get_month_name, get_weekday_name, LangCode, TRANSLATIONS
 from src.utils.package_tools import update_or_install_if_missing
-
+from src.data_import_tools import unzip_all_forecast_zips
+from src.database_tools import to_sql
 
 # Controleer en installeer indien nodig de vereiste modules
 # Dit is een vangnet als de gebruiker geen rekening houdt met requirements.txt.
@@ -35,6 +37,43 @@ update_or_install_if_missing("pandas","1.3.0")
 
 # Pas na installatie importeren
 import pandas as pd
+
+
+# -------------------------------------------------------------------
+# 🔧 Database-initiatie bij import
+# -------------------------------------------------------------------
+
+def _initialize_database():
+    """
+    Controleer of de SQLite-database bestaat en minstens 1 MB groot is. 
+    Zo niet, unzip bestanden en bouw de database op.
+    """
+    if not os.path.exists(DB_FILE) or os.path.getsize(DB_FILE) < 1_000_000:
+        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ℹ️ Database '{os.path.basename(DB_FILE)}' bestaat niet. Initialisatie gestart...")
+
+        # Unzip alle benodigde bestanden
+        try:
+            unzip_all_forecast_zips()
+        except Exception as e:
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ❌ Fout bij unzippen: {e}")
+            return False
+
+        # Maak en vul de database
+        try:
+            to_sql()
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ✅ Database succesvol aangemaakt en gevuld.")
+        except Exception as e:
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ❌ Fout bij database-opbouw: {e}")
+            return False
+
+    return True
+
+
+# Bij import meteen controleren
+_DB_READY = _initialize_database()
+if not _DB_READY:
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ⚠️  Database initialisatie mislukt. Data-extractie kan problemen geven.")
+
 
 # -------------------------------------------------------------------
 # 🧩 Hulpfuncties
