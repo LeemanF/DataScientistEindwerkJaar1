@@ -1,7 +1,7 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 18/11/2025
+Laatste update 03/12/2025
 
 Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -40,6 +40,12 @@ De Belpex-spotmarktprijzen zijn beschikbaar via de Elexys-website:
 [https://my.elexys.be/MarketInformation/SpotBelpex.aspx](https://my.elexys.be/MarketInformation/SpotBelpex.aspx)
 
 Omdat er geen API beschikbaar is, werd hiervoor gebruik gemaakt van **webscraping**.
+
+>`UPDATE 03/12/2025`  
+Doordat de Belpex-spotmarktprijzen voortaan per kwartier zijn in plaats van per uur, werd de website volledig vernieuwd.  
+Via de link [https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be](https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be) zijn de kwartierprijzen beschikbaar.  
+De code werd aangepast zodat de nieuwe data correct gedownload wordt en ook omgezet wordt naar het oude formaat.  
+Zo blijft de consistentie met de oude data behouden.
 
 ---
 
