@@ -92,21 +92,31 @@ def make_pivot(
     """
     Interne hulpfunctie om een DataFrame te pivoteren op maand en te vertalen naar maandnamen.
 
-    Optioneel kan een kolomtotaal worden toegevoegd en lege cellen worden opgevuld.
+    Optioneel kan een extra kolom worden toegevoegd die dezelfde aggregatiefunctie
+    toepast over alle maandkolommen (bijvoorbeeld sum, mean, min, max, median, ...).
+
+    Let op:
+        - De pivot zelf ondersteunt alle standaard Pandas-aggregatiefuncties.
+        - Voor de extra total-kolom worden enkel aggregatiefuncties ondersteund
+          waarvoor `pivot.<aggfunc>()` bestaat. Bij een ongeldige functie wordt
+          een waarschuwing geprint en een lege DataFrame teruggegeven.
 
     Args:
         df (pd.DataFrame): Input DataFrame met kolom 'month'.
         index_cols (str | list[str]): Kolom of lijst van kolommen voor de rijen.
         value_col (str): Waardekolom.
-        aggfunc (str): Aggregatiefunctie ('sum' of 'mean').
+        aggfunc (str): Aggregatiefunctie voor de pivot én voor de extra kolom.
+            Mogelijke waarden zijn o.a.:
+                'sum', 'mean', 'median', 'min', 'max', 'std', 'var', ...
         lang (LangCode): 'nl', 'fr' of 'en'.
         short (bool): korte of volledige maandnaam.
-        include_totals (bool): Indien True wordt een extra kolom 'Totaal' toegevoegd met de som van de maanden.
+        include_totals (bool): Indien True wordt een extra kolom toegevoegd waarop dezelfde
+            aggregatiefunctie wordt toegepast over de maandkolommen.
         fill_value (int | float | None): Waarde waarmee lege cellen worden opgevuld. Default = None.
 
     Returns:
         pd.DataFrame: Geaggregeerde pivot-tabel met maandnamen als kolommen,
-                      eventueel aangevuld met een 'Totaal'-kolom.
+                      eventueel aangevuld met een extra kolom die de totale waarde bevat volgens `aggfunc`.
     """
     pivot = df.pivot_table(
         index=index_cols,
@@ -123,9 +133,14 @@ def make_pivot(
     if isinstance(index_cols, str) and index_cols.lower() == "year":
         pivot.index.name = TRANSLATIONS["year"].get(lang, TRANSLATIONS["year"]["nl"])
 
-    # Kolomtotaal toevoegen indien gevraagd
+    # Extra jaar-kolom toevoegen die de aggregatiefunctie gebruikt
     if include_totals:
-        pivot[TRANSLATIONS["totals"][lang]] = pivot.sum(axis=1)
+        # Check of de DataFrame deze aggregatie ondersteunt
+        if not hasattr(pivot, aggfunc):
+            print(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ❌ '{aggfunc}' wordt niet ondersteund.")
+            return pd.DataFrame()   # lege dataframe
+
+        pivot[TRANSLATIONS["year"][lang]] = pivot.aggregate(aggfunc, axis=1)
 
     return pivot
 
@@ -356,7 +371,8 @@ def get_belpex_dataframe() -> pd.DataFrame:
 
 def get_belpex_pivot(
     lang: LangCode = "nl",
-    short: bool = True
+    short: bool = True,
+    include_totals: bool = False
 ) -> pd.DataFrame:
     """
     Maakt een pivot-tabel voor Belpex-prijzen.
@@ -364,12 +380,17 @@ def get_belpex_pivot(
     Rijen stellen jaren voor; kolommen zijn maandnamen in de opgegeven taal
     (kort of volledig). De waarden zijn gemiddelde maandprijzen in EUR/MWh.
 
+    Optioneel kan een kolomtotaal worden toegevoegd.
+
     Args:
         lang (LangCode): taalcode ('nl', 'fr' of 'en')
         short (bool): gebruik korte maandnamen (True) of volledige (False)
+        include_totals (bool): Indien True wordt een extra kolom 'Totaal' toegevoegd
+                               met de gemiddelde prijs van alle maanden per jaar.
 
     Returns:
-        pd.DataFrame: pivot-tabel met Belpex-prijzen per maand.
+        pd.DataFrame: pivot-tabel met Belpex-prijzen per maand,
+                      eventueel aangevuld met een 'Totaal'-kolom.
     """
     df = get_belpex_dataframe()
     return make_pivot(
@@ -378,7 +399,8 @@ def get_belpex_pivot(
         value_col="avg_price",
         aggfunc="mean",
         lang=lang,
-        short=short
+        short=short,
+        include_totals=include_totals
     )
 
 
