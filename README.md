@@ -1,7 +1,7 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 03/12/2025
+Laatste update 26/12/2025
 
 Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -43,8 +43,8 @@ Omdat er geen API beschikbaar is, werd hiervoor gebruik gemaakt van **webscrapin
 
 >`UPDATE 03/12/2025`  
 Doordat de Belpex-spotmarktprijzen voortaan per kwartier zijn in plaats van per uur, werd de website volledig vernieuwd.  
-Via de link [https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be](https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be) zijn de kwartierprijzen beschikbaar.  
-De code werd aangepast zodat de nieuwe data correct gedownload wordt en ook omgezet wordt naar het oude formaat.  
+Via de link [https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be](https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be) zijn de kwartierprijzen beschikbaar. 
+De code werd aangepast zodat de nieuwe data correct gedownload wordt en ook omgezet wordt naar het oude formaat. 
 Zo blijft de consistentie met de oude data behouden.
 
 ---
@@ -92,7 +92,7 @@ Volgende klassen vormen het fundament van het SQLAlchemy-model:
 - `class WindData`: model voor het creëren en vullen van de tabel `tbl_wind_data`
 - `class BelpexPrice`: model voor het creëren en vullen van de tabel `tbl_belpex_prices`
 
-Een overzicht van de beschikbare modellen en hun kolommen is terug te vinden via de functie `alle_modellen_en_kolommen()` in de module  
+Een overzicht van de beschikbare modellen en hun kolommen is terug te vinden via de functie `alle_modellen_en_kolommen()` in de module 
 [`sqlalchemy_model_utils.py`](src/utils/sqlalchemy_model_utils.py).
 
 #### Verrijking van de data
@@ -105,7 +105,7 @@ De verkregen data wordt in alle modellen aangevuld met extra tijdsdimensies in d
 - `hour`
 - `minute`  
 
-Deze extra tijdsdimensies maken het mogelijk om flexibel te groeperen en te visualiseren op dag-, week-, maand-, weekdag- of uurniveau.
+Deze extra tijdsdimensies maken het mogelijk om flexibel te groeperen en te visualiseren op dag-, maand-, jaar-, weekdag- of uurniveau.
 Binnen dit project was dit geen noodzaak door het gebruik van pandas, maar het maakt het mogelijk om in de toekomst vlot te koppelen met Power BI.
 
 #### Toevoegen records aan database
@@ -175,8 +175,7 @@ pip install -r requirements.txt
 
 ## 🗃️ Database
 
-De SQLite-database bevindt zich standaard in:  
-`./Database/energie_data.sqlite`
+De standaard locatie van de SQLite-database is `./Database/energie_data.sqlite`
 
 Tabellen:
 - [tbl_solar_data](Documents/tbl_solar_data.txt)
@@ -240,6 +239,7 @@ Project/
 │   └── energie_data.sqlite             # SQLite-database met gestructureerde gegevens
 ├── Documents/                          # Bijkomende documentatie van het project
 │   ├── 20250102_Press-release-Elia.pdf
+│   ├── 20251226_Press-release-Elia.pdf
 │   ├── log_2025-10-05.txt
 │   ├── Solar.json
 │   ├── tbl_belpex_prices.txt
