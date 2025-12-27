@@ -63,6 +63,16 @@ TRANSLATIONS = {
                 "fr": "Production solaire mensuelle (GWh)",
                 "en": "Monthly solar production (GWh)"
             },
+            "solar_cumulative": {
+                "nl": "Cumulatieve zonne-energieproductie per jaar (GWh)",
+                "fr": "Production solaire cumulée par année (GWh)",
+                "en": "Cumulative solar production per year (GWh)"
+            },
+            "solar_cumulative_zone": {
+                "nl": "Cumulatieve zonne-energieproductie – historisch bereik en huidig jaar (GWh)",
+                "fr": "Production solaire cumulée – plage historique et année en cours (GWh)",
+                "en": "Cumulative solar production – historical range and current year (GWh)"
+            },
             "combined": {
                 "nl": "Hernieuwbare energieproductie en Belpex-prijs per maand",
                 "fr": "Production d'énergies renouvelables et prix Belpex par mois",

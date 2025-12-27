@@ -186,17 +186,24 @@ def plot_wind_total(
 def plot_solar(
         lang: LangCode = "nl",
         short: bool = True,
-        layout: Literal["years", "months"] = "years"
+        layout: Literal["years", "months", "cumulative", "cumulative_zone", "cumulative_zone"] = "years"
     ) -> None:
     """
-    Visualiseert de maandelijkse zonne-energieproductie, met keuze tussen twee
-    weergavelayouts: jaren op de X-as (stacked) of maanden op de X-as
-    (gegroepeerde staafjes per jaar).
+    Visualiseert de maandelijkse zonne-energieproductie, met keuze tussen vier
+    weergavelayouts: gestapelde balken per jaar, gegroepeerde balken per maand,
+    cumulatieve lijndiagrammen per jaar of een cumulatieve zoneweergave met het
+    meest recente jaar als lijn.
 
-    Bij layout='years' worden de jaren op de X-as geplaatst en worden de
-    maanden als gestapelde balken weergegeven (GWh). Bij layout='months'
-    verschijnen de maandnamen op de X-as en worden de productiegegevens voor
-    de verschillende jaren als afzonderlijke balken naast elkaar getoond.
+    Bij layout='years' worden de jaren op de X-as geplaatst en worden de maanden
+    als gestapelde balken weergegeven (GWh).  
+    Bij layout='months' verschijnen de maandnamen op de X-as en worden de
+    productiegegevens voor de verschillende jaren als afzonderlijke balken naast
+    elkaar getoond.  
+    Bij layout='cumulative' staan de maanden op de X-as en wordt per jaar de
+    cumulatieve zonne-energieproductie weergegeven als een lijndiagram.  
+    Bij layout='cumulative_zone' wordt het historisch bereik van de cumulatieve
+    productie weergegeven als een zone (min–max), met het meest recente jaar als
+    afzonderlijke lijn.
 
     Args:
         lang (LangCode, optional):
@@ -207,10 +214,13 @@ def plot_solar(
             Gebruik korte maandnamen (True) of volledige maandnamen (False).
             Standaard is True.
 
-        layout (Literal["years", "months"], optional):
+        layout (Literal["years", "months", "cumulative", "cumulative_zone"], optional):
             Selecteert de grafiekindeling:
-            - "years": jaren op de X-as, maanden stacked.
-            - "months": maanden op de X-as, jaren gegroepeerd.
+            - "years": jaren op de X-as, maanden als gestapelde balken.
+            - "months": maanden op de X-as, jaren als gegroepeerde balken.
+            - "cumulative": maanden op de X-as, cumulatieve maandtotalen per jaar (lijn).
+            - "cumulative_zone": maanden op de X-as, historisch bereik als zone en
+              het meest recente jaar als lijn.
             Standaard is "years".
 
     Returns:
@@ -246,10 +256,53 @@ def plot_solar(
         xlabel = TRANSLATIONS["month"][lang]
         legend_title = TRANSLATIONS["year"][lang]
 
-    else:
-        raise ValueError("layout must be 'years' or 'months'")
+    elif layout == "cumulative":
+        df = pivot_solar.T.cumsum()
+        ax = df.plot(
+            kind="line",
+            figsize=(12, 6),
+            linewidth=2
+        )
+        xlabel = TRANSLATIONS["month"][lang]
+        legend_title = TRANSLATIONS["year"][lang]
 
-    ax.set_title(TRANSLATIONS["titles"]["solar"][lang])
+    elif layout == "cumulative_zone":
+        df = pivot_solar.T.cumsum()
+
+        last_year = df.columns.max()
+        historical = df.drop(columns=last_year)
+        current = df[last_year]
+
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        ax.fill_between(
+            df.index,
+            historical.min(axis=1),
+            historical.max(axis=1),
+            alpha=0.25,
+            label=f"{historical.columns.min()}–{historical.columns.max()}"
+        )
+
+        ax.plot(
+            df.index,
+            current,
+            linewidth=2.5,
+            label=str(last_year)
+        )
+
+        xlabel = TRANSLATIONS["month"][lang]
+        legend_title = TRANSLATIONS["year"][lang]
+
+    else:
+        raise ValueError("layout must be 'years', 'months', 'cumulative' or 'cumulative_zone'")
+
+    if layout == "cumulative_zone":
+        ax.set_title(TRANSLATIONS["titles"]["solar_cumulative_zone"][lang])
+    elif layout == "cumulative":
+        ax.set_title(TRANSLATIONS["titles"]["solar_cumulative"][lang])
+    else:
+        ax.set_title(TRANSLATIONS["titles"]["solar"][lang])
+
     ax.set_xlabel(xlabel)
     ax.set_ylabel("GWh")
 
@@ -261,7 +314,6 @@ def plot_solar(
 
     plt.tight_layout()
     plt.show()
-
 
 
 # -------------------------------------------------------------------
