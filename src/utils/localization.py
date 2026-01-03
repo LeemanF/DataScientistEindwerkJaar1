@@ -58,6 +58,11 @@ TRANSLATIONS = {
                 "fr": "Production éolienne totale mensuelle (GWh)",
                 "en": "Total monthly wind production (GWh)"
             },
+            "wind_cumulative": {
+                "nl": "Cumulatieve windproductie per jaar (GWh)",
+                "fr": "Production éolienne cumulée par année (GWh)",
+                "en": "Cumulative wind production per year (GWh)"
+            },
             "solar": {
                 "nl": "Maandelijkse zonne-energieproductie (GWh)",
                 "fr": "Production solaire mensuelle (GWh)",
@@ -69,9 +74,9 @@ TRANSLATIONS = {
                 "en": "Cumulative solar production per year (GWh)"
             },
             "solar_cumulative_zone": {
-                "nl": "Cumulatieve zonne-energieproductie – historisch bereik en huidig jaar (GWh)",
-                "fr": "Production solaire cumulée – plage historique et année en cours (GWh)",
-                "en": "Cumulative solar production – historical range and current year (GWh)"
+                "nl": "Cumulatieve zonne-energieproductie - historisch bereik en huidig jaar (GWh)",
+                "fr": "Production solaire cumulée - plage historique et année en cours (GWh)",
+                "en": "Cumulative solar production - historical range and current year (GWh)"
             },
             "combined": {
                 "nl": "Hernieuwbare energieproductie en Belpex-prijs per maand",

@@ -15,7 +15,6 @@ Windproductie:
 
 Zonne-energie:
 - plot_solar(): maandelijkse zonne-energieproductie, keuze tussen layout per jaar of per maand.
-- plot_solar_interactive(): interactieve versie van plot_solar() met Plotly.
 
 Belpex-prijzen:
 - plot_belpex_heatmap(): heatmap van gemiddelde Belpex-prijzen per maand en jaar.
@@ -26,6 +25,9 @@ Belpex-prijzen:
 Gecombineerde visualisaties:
 - plot_combined(): gecombineerde weergave van wind, zon en Belpex-prijs in één grafiek.
 
+Interactieve graieken:
+- plot_interactive(): interactieve visualisatie van wind- en zonne-energieproductie met Plotly.
+
 Algemene kenmerken:
 - Ondersteuning voor meertalige labels (nl/fr/en) en korte/volledige maandnamen.
 - Alle grafieken worden direct weergegeven via matplotlib/seaborn.
@@ -35,6 +37,7 @@ Algemene kenmerken:
 from src.data_extraction import (
     get_wind_pivot_split,
     get_wind_pivot_total,
+    get_wind_dataframe_total,
     get_solar_pivot,
     get_solar_dataframe,
     get_belpex_pivot,
@@ -58,7 +61,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 
 # -------------------------------------------------------------------
 # 🌬️ Windproductie - opsplitsing Offshore/Onshore
@@ -268,6 +270,11 @@ def plot_solar(
             figsize=(12, 6),
             linewidth=2
         )
+
+        # alle maanden tonen op de x-as
+        ax.set_xticks(range(len(df.index)))
+        ax.set_xticklabels(df.index)
+
         xlabel = TRANSLATIONS["month"][lang]
         legend_title = TRANSLATIONS["year"][lang]
 
@@ -324,25 +331,26 @@ def plot_solar(
 
 
 # -------------------------------------------------------------------
-# ☀️ Zonne-energie INTERACTIEF
+# Interactieve grafiek
 # -------------------------------------------------------------------
-def plot_solar_interactive(
+def plot_interactive(
+        energytype: Literal["wind", "solar"],
         lang: LangCode = "nl",
         short: bool = True,
         layout: Literal["years", "months", "cumulative"] = "years"
     ) -> None:
     """
-    Visualiseert de maandelijkse zonne-energieproductie met interactieve
+    Visualiseert de maandelijkse wind- en zonne-energieproductie met interactieve
     Plotly-grafieken, gebruikmakend van een long-format DataFrame.
 
-    Deze functie is de interactieve tegenhanger van `plot_solar` (matplotlib)
+    Deze functie is de interactieve tegenhanger van `plot_wind_total` en `plot_solar` (matplotlib)
     en maakt gebruik van Plotly Express om zoom, hover-informatie en het
     in- en uitschakelen van reeksen via de legenda mogelijk te maken.
 
-    De data wordt opgehaald via `get_solar_dataframe()` en bevat per rij:
+    De data wordt opgehaald via `get_wind_dataframe_total()` of `get_solar_dataframe()` en bevat per rij:
     - een jaar
     - een maand
-    - de totale zonne-energieproductie in GWh
+    - de totale wind- en zonne-energieproductie in GWh
 
     Afhankelijk van de gekozen `layout` wordt deze long-format data:
     - rechtstreeks gebruikt (cumulative),
@@ -360,6 +368,9 @@ def plot_solar_interactive(
         De X-as toont de maanden, elke lijn stelt een jaar voor.
 
     Args:
+        energytype (Literal["solar", "wind"]):
+            Selecteert het type energie. 
+
         lang (LangCode, optional):
             Taalcode voor labels, titels en maand-/jaarnamen.
             Ondersteunt 'nl', 'fr' en 'en'. 
@@ -378,7 +389,16 @@ def plot_solar_interactive(
             De functie toont de grafiek interactief in de browser
             (of notebook) en geeft geen waarde terug.
     """
-    df = get_solar_dataframe()
+    if energytype == "wind":
+        df = get_wind_dataframe_total()
+        title = TRANSLATIONS["titles"]["wind_total"][lang]
+        title_cumulative = TRANSLATIONS["titles"]["wind_cumulative"][lang]
+    elif energytype == "solar":
+        df = get_solar_dataframe()
+        title = TRANSLATIONS["titles"]["solar"][lang]
+        title_cumulative = TRANSLATIONS["titles"]["solar_cumulative"][lang]
+    else:
+        raise ValueError("energytype must be 'solar' or 'wind'")
 
     if df.empty:
         print(TRANSLATIONS["errors"]["no_data_to_plot"][lang])
@@ -412,7 +432,7 @@ def plot_solar_interactive(
             x=year_col,
             y="GWh",
             color=month_col,
-            title=TRANSLATIONS["titles"]["solar"][lang],
+            title=title,
             labels={
                 "GWh": "GWh"
             }
@@ -429,7 +449,7 @@ def plot_solar_interactive(
             y="GWh",
             color=year_col,
             barmode="group",
-            title=TRANSLATIONS["titles"]["solar"][lang],
+            title=title,
             labels={
                 "GWh": "GWh"
             }
@@ -449,7 +469,7 @@ def plot_solar_interactive(
             x=month_col,
             y="cumulative_GWh",
             color=year_col,
-            title=TRANSLATIONS["titles"]["solar_cumulative"][lang],
+            title=title_cumulative,
             labels={
                 "cumulative_GWh": "GWh"
             }
