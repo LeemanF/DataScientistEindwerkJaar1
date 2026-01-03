@@ -15,6 +15,7 @@ Windproductie:
 
 Zonne-energie:
 - plot_solar(): maandelijkse zonne-energieproductie, keuze tussen layout per jaar of per maand.
+- plot_solar_interactive(): interactieve versie van plot_solar() met Plotly.
 
 Belpex-prijzen:
 - plot_belpex_heatmap(): heatmap van gemiddelde Belpex-prijzen per maand en jaar.
@@ -35,12 +36,13 @@ from src.data_extraction import (
     get_wind_pivot_split,
     get_wind_pivot_total,
     get_solar_pivot,
+    get_solar_dataframe,
     get_belpex_pivot,
     get_belpex_hourly_pivot,
     get_negative_price_counts_pivot,
     get_combined_dataframe
 )
-from src.utils.localization import TRANSLATIONS, LangCode
+from src.utils.localization import TRANSLATIONS, LangCode, get_month_name
 from typing import Literal
 from src.utils.package_tools import update_or_install_if_missing
 
@@ -49,11 +51,14 @@ from src.utils.package_tools import update_or_install_if_missing
 update_or_install_if_missing("matplotlib","3.5.0")
 update_or_install_if_missing("seaborn","0.11.0")
 update_or_install_if_missing("pandas","1.3.0")
+update_or_install_if_missing("plotly","5.0")
 
-# Pas na installatie importeren
+# Pas na eventuele installatie importeren
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 
 # -------------------------------------------------------------------
 # 🌬️ Windproductie - opsplitsing Offshore/Onshore
@@ -279,6 +284,7 @@ def plot_solar(
             df.index,
             historical.min(axis=1),
             historical.max(axis=1),
+            color="gold",
             alpha=0.25,
             label=f"{historical.columns.min()}–{historical.columns.max()}"
         )
@@ -286,6 +292,7 @@ def plot_solar(
         ax.plot(
             df.index,
             current,
+            color="gold",
             linewidth=2.5,
             label=str(last_year)
         )
@@ -314,6 +321,151 @@ def plot_solar(
 
     plt.tight_layout()
     plt.show()
+
+
+# -------------------------------------------------------------------
+# ☀️ Zonne-energie INTERACTIEF
+# -------------------------------------------------------------------
+def plot_solar_interactive(
+        lang: LangCode = "nl",
+        short: bool = True,
+        layout: Literal["years", "months", "cumulative"] = "years"
+    ) -> None:
+    """
+    Visualiseert de maandelijkse zonne-energieproductie met interactieve
+    Plotly-grafieken, gebruikmakend van een long-format DataFrame.
+
+    Deze functie is de interactieve tegenhanger van `plot_solar` (matplotlib)
+    en maakt gebruik van Plotly Express om zoom, hover-informatie en het
+    in- en uitschakelen van reeksen via de legenda mogelijk te maken.
+
+    De data wordt opgehaald via `get_solar_dataframe()` en bevat per rij:
+    - een jaar
+    - een maand
+    - de totale zonne-energieproductie in GWh
+
+    Afhankelijk van de gekozen `layout` wordt deze long-format data:
+    - rechtstreeks gebruikt (cumulative),
+    - of licht herschikt voor staafdiagrammen (years / months).
+
+    Ondersteunde layouts:
+    - "years":
+        Gestapelde staafdiagrammen per jaar.
+        De X-as toont de jaren, de kleuren stellen de maanden voor.
+    - "months":
+        Gegroepeerde staafdiagrammen per maand.
+        De X-as toont de maanden, de kleuren stellen de jaren voor.
+    - "cumulative":
+        Lijndiagrammen met cumulatieve maandtotalen per jaar.
+        De X-as toont de maanden, elke lijn stelt een jaar voor.
+
+    Args:
+        lang (LangCode, optional):
+            Taalcode voor labels, titels en maand-/jaarnamen.
+            Ondersteunt 'nl', 'fr' en 'en'. 
+            Standaard is 'nl'.
+
+        short (bool, optional):
+            Bepaalt of korte (True) of volledige (False) maandnamen gebruikt worden. 
+            Standaard is True.
+
+        layout (Literal["years", "months", "cumulative"], optional):
+            Selecteert de grafiekindeling. 
+            Standaard is "years".
+
+    Returns:
+        None:
+            De functie toont de grafiek interactief in de browser
+            (of notebook) en geeft geen waarde terug.
+    """
+    df = get_solar_dataframe()
+
+    if df.empty:
+        print(TRANSLATIONS["errors"]["no_data_to_plot"][lang])
+        return
+
+    # Zorg voor correcte sortering
+    df = df.sort_values(["year", "month"])
+
+    # Omzetten van maandnummers naar maandnamen
+    df["month"] = [
+        get_month_name(m, lang=lang, short=short)
+        for m in df["month"]
+    ]
+
+    year_col = TRANSLATIONS["year"][lang]
+    month_col = TRANSLATIONS["month"][lang]
+
+    # Hernoem kolommen voor consistente labels
+    df = df.rename(
+        columns={
+            "year": year_col,
+            "month": month_col,
+            "total_GWh": "GWh"
+        }
+    )
+
+    # stacked bars per jaar
+    if layout == "years":
+        fig = px.bar(
+            df,
+            x=year_col,
+            y="GWh",
+            color=month_col,
+            title=TRANSLATIONS["titles"]["solar"][lang],
+            labels={
+                "GWh": "GWh"
+            }
+        )
+
+        legend_title = month_col
+
+    # grouped bars per maand
+    elif layout == "months":
+        df[year_col] = df[year_col].astype(str)
+        fig = px.bar(
+            df,
+            x=month_col,
+            y="GWh",
+            color=year_col,
+            barmode="group",
+            title=TRANSLATIONS["titles"]["solar"][lang],
+            labels={
+                "GWh": "GWh"
+            }
+        )
+
+        legend_title = year_col
+
+    # cumulatieve lijnen per year
+    elif layout == "cumulative":
+        # Bereken cumulatieve productie per jaar
+        df["cumulative_GWh"] = (
+            df.groupby(year_col)["GWh"].cumsum()
+        )
+
+        fig = px.line(
+            df,
+            x=month_col,
+            y="cumulative_GWh",
+            color=year_col,
+            title=TRANSLATIONS["titles"]["solar_cumulative"][lang],
+            labels={
+                "cumulative_GWh": "GWh"
+            }
+        )
+
+        legend_title = year_col
+
+    else:
+        raise ValueError("layout must be 'years', 'months' or 'cumulative'")
+
+    fig.update_layout(
+        legend_title_text=legend_title,
+        hovermode="closest"
+    )
+
+    fig.show()
 
 
 # -------------------------------------------------------------------
