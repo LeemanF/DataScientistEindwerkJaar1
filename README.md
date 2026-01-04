@@ -1,7 +1,7 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 26/12/2025
+Laatste update 04/01/2025
 
 Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -147,8 +147,15 @@ Deze module bevat functies voor onder andere:
 - Dag-, week- en maandprofielen van Belpex-prijzen.  
 - Heatmaps, cumulatieve negatieve prijzen en bubble charts.  
 - Gecombineerde grafieken waarin prijs- en productiegegevens samen worden weergegeven.
+- Interactieve Plotly-grafieken
 
-> **Opmerking:** alle visualisatiefuncties tonen de grafiek direct via Matplotlib/Seaborn en retourneren geen waarden.
+> **Opmerking:** alle visualisatiefuncties tonen de grafiek direct via Matplotlib/Seaborn/Plotly en retourneren geen waarden.
+
+![Hernieuwbare energieproductie en Belpex-prijs per maand](Documents/Images/plot_combined.png)  
+
+![Gemiddelde Belpex-prijs per uur per weekdag](Documents/Images/plot_belpex_hourly.png)  
+
+![Maandelijkse zonne-energieproductie](Documents/Images/plot_solar.png)  
 
 #### Taalondersteuning
 
@@ -249,6 +256,9 @@ Project/
 │   ├── Wind.json
 │   └── Images/                         # Afbeeldingen die gebruikt worden in README.md
 │       ├── Banner.png
+│       ├── plot_belpex_hourly.png
+│       ├── plot_combined.png
+│       ├── plot_solar.png
 │       └── Taakplanner.png 
 ├── Log/                                # Logbestanden gegenereerd door auto_update.py
 │   └── log_YYYY-MM-DD.txt
@@ -295,6 +305,7 @@ Tijdens de ontwikkeling van dit project werden onder andere volgende websites ge
 - [Support for type hints](https://docs.python.org/3/library/typing.html)
 - [Matplotlib](https://matplotlib.org/stable/) - bar plots, line plots, twin axes, ...
 - [Seaborn](https://seaborn.pydata.org/) - heatmaps
+- [Plotly Express](https://plotly.com/python/plotly-express/) — high-level API voor snelle interactieve grafieken
 
 ---
 
@@ -308,3 +319,15 @@ De tool diende vooral ter ondersteuning bij:
 - Het uitschrijven van bepaalde functies of decoratoren
 - Het herformuleren van uitleg of commentaar in de code
 - Het structureren van de `README.md` in heldere markdownstijl
+
+---
+
+## 🎯 Skills demonstrated
+
+- Python (pandas, SQLAlchemy, matplotlib, seaborn, plotly)
+- ETL pipelines
+- API consumption & web scraping
+- SQLite database design
+- Logging & automation
+- Modular project architecture
+- Multilingual visualisation
