@@ -1,7 +1,7 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 05/01/2025
+Laatste update 09/01/2025
 
 Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -43,6 +43,7 @@ Omdat er geen API beschikbaar is, werd hiervoor gebruik gemaakt van **webscrapin
 
 >`UPDATE 03/12/2025`  
 Doordat de Belpex-spotmarktprijzen voortaan per kwartier zijn in plaats van per uur, werd de website volledig vernieuwd.  
+[screenshot oude website](Documents/Images/Elexys_oude_website.png) - [screenshot nieuwe website](Documents/Images/Elexys_nieuwe_website.png)  
 Via de link [https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be](https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be) zijn de kwartierprijzen beschikbaar. 
 De code werd aangepast zodat de nieuwe data correct gedownload wordt en ook omgezet wordt naar het oude formaat. 
 Zo blijft de consistentie met de oude data behouden.
@@ -151,12 +152,6 @@ Deze module bevat functies voor onder andere:
 
 > **Opmerking:** alle visualisatiefuncties tonen de grafiek direct via Matplotlib/Seaborn/Plotly en retourneren geen waarden.
 
-![Hernieuwbare energieproductie en Belpex-prijs per maand](Documents/Images/plot_combined.png)  
-
-![Gemiddelde Belpex-prijs per uur per weekdag](Documents/Images/plot_belpex_hourly.png)  
-
-![Maandelijkse zonne-energieproductie](Documents/Images/plot_solar.png)  
-
 #### Taalondersteuning
 
 Zowel `data_extraction.py` als `visualisation_tools.py` ondersteunen meertaligheid (Nederlands / Frans / Engels).  
@@ -166,6 +161,16 @@ lang="nl" | "fr" | "en"
 ```
 De vertalingen en helperfuncties worden beheerd in [`localization.py`](src/utils/localization.py).
 Hierdoor zijn titels, labels, foutmeldingen en assen gelokaliseerd in alle visualisaties.
+
+#### Voorbeelden
+
+![Hernieuwbare energieproductie en Belpex-prijs per maand](Documents/Images/plot_combined.png)  
+
+![Gemiddelde Belpex-prijs per uur per weekdag](Documents/Images/plot_belpex_hourly.png)  
+
+![Maandelijkse zonne-energieproductie](Documents/Images/plot_solar.png)  
+
+![Interactieve grafiek](Documents/Images/plot_interactive.png)
 
 ---
 
