@@ -26,11 +26,11 @@ Gecombineerde visualisaties:
 - plot_combined(): gecombineerde weergave van wind, zon en Belpex-prijs in één grafiek.
 
 Interactieve graieken:
-- plot_interactive(): interactieve visualisatie van wind- en zonne-energieproductie met Plotly.
+- plot_interactive(): interactieve visualisatie van wind- en zonne-energieproductie met plotly.
 
 Algemene kenmerken:
 - Ondersteuning voor meertalige labels (nl/fr/en) en korte/volledige maandnamen.
-- Alle grafieken worden direct weergegeven via matplotlib/seaborn.
+- Alle grafieken worden direct weergegeven via matplotlib/seaborn/plotly.
 - Indien geen data beschikbaar, geeft de functie een waarschuwing en genereert
   geen grafiek.
 """
@@ -209,7 +209,7 @@ def plot_solar(
     Bij layout='cumulative' staan de maanden op de X-as en wordt per jaar de
     cumulatieve zonne-energieproductie weergegeven als een lijndiagram.  
     Bij layout='cumulative_zone' wordt het historisch bereik van de cumulatieve
-    productie weergegeven als een zone (min–max), met het meest recente jaar als
+    productie weergegeven als een zone (min-max), met het meest recente jaar als
     afzonderlijke lijn.
 
     Args:
@@ -331,7 +331,7 @@ def plot_solar(
 
 
 # -------------------------------------------------------------------
-# Interactieve grafiek
+# 📊 Interactieve grafiek
 # -------------------------------------------------------------------
 def plot_interactive(
         energytype: Literal["wind", "solar"],
