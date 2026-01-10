@@ -21,6 +21,7 @@ Belpex-prijzen:
 - plot_belpex_hourly(): gemiddelde Belpex-prijzen per uur, gegroepeerd per weekdag of maand.
 - plot_negative_price_counts_cumulative(): cumulatief aantal uren met negatieve prijzen per maand/jaar.
 - plot_negative_price_counts_bubble(): aantal uren met negatieve prijzen als bubble chart.
+- plot_belpex_price_distribution(): boxplot van de maandelijkse spreiding van Belpex-prijzen (EUR/MWh).
 
 Gecombineerde visualisaties:
 - plot_combined(): gecombineerde weergave van wind, zon en Belpex-prijs in één grafiek.
@@ -43,7 +44,8 @@ from src.data_extraction import (
     get_belpex_pivot,
     get_belpex_hourly_pivot,
     get_negative_price_counts_pivot,
-    get_combined_dataframe
+    get_combined_dataframe,
+    execute_query
 )
 from src.utils.localization import TRANSLATIONS, LangCode, get_month_name
 from typing import Literal
@@ -692,6 +694,82 @@ def plot_negative_price_counts_bubble(lang: str = "nl", short: bool = True):
     plt.ylabel(TRANSLATIONS["year"][lang])
     plt.legend(title=TRANSLATIONS["year"][lang], bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.grid(True, linestyle='--', alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+
+# -------------------------------------------------------------------
+# 📦 Belpex-prijzen – verdeling per maand (boxplot)
+# -------------------------------------------------------------------
+def plot_belpex_price_distribution(lang: LangCode = "nl") -> None:
+    """
+    Visualiseert de verdeling van Belpex-elektriciteitsprijzen per maand
+    aan de hand van boxplots.
+
+    Voor elke maand (YYYY-MM) wordt een boxplot getoond die de spreiding
+    van de uurprijzen (EUR/MWh) weergeeft. De grafiek is bedoeld om
+    volatiliteit en uitschieters per maand te analyseren.
+
+    De titel en aslabels worden automatisch aangepast aan de gekozen taal.
+
+    Args:
+        lang (Literal["nl", "fr", "en"], optional):
+            Taalcode voor titel en aslabels.
+            Standaard is "nl".
+
+    Returns:
+        None:
+            Toont de grafiek via matplotlib en geeft niets terug.
+    """
+
+    query = """
+        SELECT year, month, price_eur_per_MWh
+        FROM tbl_belpex_prices
+    """
+
+    df = execute_query(query)
+
+    if df.empty:
+        print(TRANSLATIONS["errors"]["no_data_to_plot"][lang])
+        return
+
+    # Periodekolom: YYYY-MM
+    df["period"] = (
+        df["year"].astype(str)
+        + "-"
+        + df["month"].astype(str).str.zfill(2)
+    )
+
+    periods = sorted(df["period"].unique())
+
+    # Data per periode voor boxplot
+    data = [
+        df.loc[df["period"] == period, "price_eur_per_MWh"]
+        for period in periods
+    ]
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(20, 10))
+    ax.boxplot(data)
+
+    ax.set_title(
+        TRANSLATIONS["titles"]["belpex_distribution"][lang],
+        fontsize=18
+    ),
+    ax.set_xlabel(
+        TRANSLATIONS["month"][lang],
+        fontsize=14
+    )
+    ax.set_ylabel(
+        TRANSLATIONS["labels"]["belpex_EUR_per_MWh"][lang],
+        fontsize=14
+    )
+
+    ax.set_xticklabels(periods, rotation=90)
+    # zet grid achter de boxplot
+    ax.set_axisbelow(True)
+    ax.grid(axis="y", linestyle=":", alpha=0.7)
+
     plt.tight_layout()
     plt.show()
 

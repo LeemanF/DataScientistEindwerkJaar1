@@ -107,6 +107,11 @@ TRANSLATIONS = {
                 "nl": "Aantal uren met negatieve Belpex-prijzen",
                 "fr": "Nombre d'heures avec des prix négatifs Belpex",
                 "en": "Number of hours with negative Belpex prices"
+            },
+            "belpex_distribution": {
+                "nl": "Verdeling Belpex-prijzen per maand",
+                "fr": "Distribution des prix Belpex par mois",
+                "en": "Distribution of Belpex prices per month"
             }
         },
         "labels": {
