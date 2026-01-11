@@ -138,7 +138,7 @@ Dit script kan via de Windows Taakplanner automatisch op maandelijkse basis uitg
 De klasse [`DualLogger()`](src/utils/dual_logger.py) zorgt ervoor dat alle console-uitvoer ook naar een logbestand geschreven wordt: zie [voorbeeld](Documents/log_2025-10-05.txt).  
 Hoewel de logging-module de professionele standaard is, biedt DualLogger in het kader van dit eindproject een eenvoudige, robuuste en onderhoudsarme manier om zowel standaarduitvoer als foutmeldingen en TQDM-voortgangsbalken simultaan te loggen. Voor grotere projecten zou ik uiteraard de logging-module verkiezen.
 
-### Laden en visualiseren van de data
+### Laden en visualiseren van de data (data_extraction.py en visualisation_tools.py)
 
 De module [`data_extraction.py`](src/data_extraction.py) bevat functies om gegevens uit de SQLite-database op te halen.  
 Ze levert zowel **ruwe dataframes** (onbewerkte records) als **gepivotteerde tabellen** die klaar zijn voor analyse of visualisatie. Deze tabellen vormen de basis voor alle grafieken in het project.
@@ -173,6 +173,12 @@ Hierdoor zijn titels, labels, foutmeldingen en assen gelokaliseerd in alle visua
 ![Maandelijkse zonne-energieproductie](Documents/Images/plot_solar.png)  
 
 ![Interactieve grafiek](Documents/Images/plot_interactive.png)
+
+---
+
+## 📊 Dashboard
+
+De notebook [`main.ipynb`](main.ipynb) fungeert als een interactief overzicht en demonstratie van alle functies voor het ophalen, verwerken en visualiseren van energie- en marktdata. Ze bevat toegepaste voorbeelden op reële datasets en laat gebruikers toe de mogelijkheden van het project stap voor stap te verkennen. Deze notebook is bedoeld als het primaire instappunt voor gebruikers zonder programmeer- of technische achtergrond, en kan tegelijk dienen als een lichtgewicht analytisch dashboard voor snelle exploratie van de data.
 
 ---
 
