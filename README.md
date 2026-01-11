@@ -1,9 +1,11 @@
 ![Banner](Documents/Images/Banner.png)  
 # Evolutie productie zonne- en windenergie
 
-Laatste update 09/01/2025
+[https://github.com/LeemanF/DataScientistEindwerkJaar1](https://github.com/LeemanF/DataScientistEindwerkJaar1)
 
-Voor de opleiding Data-Scientist werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
+Laatste update 11/01/2025
+
+Voor het eerste jaar van de opleiding Data-Scientist (Python data developer) werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
 - **Transform**: het bewerken (opkuisen) van de data  
 - **Load**: het analyseren van de opgekuiste data  
@@ -42,7 +44,7 @@ De Belpex-spotmarktprijzen zijn beschikbaar via de Elexys-website:
 Omdat er geen API beschikbaar is, werd hiervoor gebruik gemaakt van **webscraping**.
 
 >`UPDATE 03/12/2025`  
-Doordat de Belpex-spotmarktprijzen voortaan per kwartier zijn in plaats van per uur, werd de website volledig vernieuwd.  
+Doordat de Belpex-spotmarktprijzen voortaan per kwartier zijn in plaats van per uur, werd de website van Elexys volledig vernieuwd.  
 [screenshot oude website](Documents/Images/Elexys_oude_website.png) - [screenshot nieuwe website](Documents/Images/Elexys_nieuwe_website.png)  
 Via de link [https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be](https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be) zijn de kwartierprijzen beschikbaar. 
 De code werd aangepast zodat de nieuwe data correct gedownload wordt en ook omgezet wordt naar het oude formaat. 
@@ -146,7 +148,7 @@ Deze module bevat functies voor onder andere:
 
 - Maandelijkse en jaarlijkse wind- en zonne-energieproductie.  
 - Dag-, week- en maandprofielen van Belpex-prijzen.  
-- Heatmaps, cumulatieve negatieve prijzen en bubble charts.  
+- Heatmaps, cumulatieve negatieve prijzen, bubble charts en boxplots.  
 - Gecombineerde grafieken waarin prijs- en productiegegevens samen worden weergegeven.
 - Interactieve Plotly-grafieken
 
@@ -308,7 +310,7 @@ Tijdens de ontwikkeling van dit project werden onder andere volgende websites ge
 - [Pandas documentation](https://pandas.pydata.org/docs/index.html)
 - [sqlite3](https://docs.python.org/3/library/sqlite3.html)
 - [Support for type hints](https://docs.python.org/3/library/typing.html)
-- [Matplotlib](https://matplotlib.org/stable/) - bar plots, line plots, twin axes, ...
+- [Matplotlib](https://matplotlib.org/stable/) - bar plots, line plots, twin axes, boxplots, ...
 - [Seaborn](https://seaborn.pydata.org/) - heatmaps
 - [Plotly Express](https://plotly.com/python/plotly-express/) — high-level API voor snelle interactieve grafieken
 
