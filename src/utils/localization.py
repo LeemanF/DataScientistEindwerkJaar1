@@ -144,6 +144,16 @@ TRANSLATIONS = {
                 "nl": "Cumulatief aantal uren",
                 "fr": "Nombre cumulatif d'heures",
                 "en": "Cumulative hours"
+            },
+            "peak1": {
+                "nl": "Marktschok (Oekraïne)",
+                "fr": "Choc du marché (Ukraine)",
+                "en": "Market shock (Ukraine)"
+            },
+            "peak2": {
+                "nl": "Gascrisis / Nord Stream",
+                "fr": "Crise du gaz / Nord Stream",
+                "en": "Gas crisis / Nord Stream"
             }
         },
         "errors": {
@@ -187,6 +197,11 @@ TRANSLATIONS = {
             "nl": "Totaal",
             "fr": "Total",
             "en": "Total"
+        },
+        "source": {
+            "nl": "Bron",
+            "fr": "Source",
+            "en": "Source"
         }
     }
 

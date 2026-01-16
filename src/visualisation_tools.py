@@ -57,6 +57,7 @@ update_or_install_if_missing("matplotlib","3.5.0")
 update_or_install_if_missing("seaborn","0.11.0")
 update_or_install_if_missing("pandas","1.3.0")
 update_or_install_if_missing("plotly","5.0")
+update_or_install_if_missing("nbformat","4.2.0")
 
 # Pas na eventuele installatie importeren
 import matplotlib.pyplot as plt
@@ -104,6 +105,18 @@ def plot_wind_split(lang: LangCode = "nl", short: bool = True) -> None:
         plt.xlabel(TRANSLATIONS["year"][lang])
         plt.ylabel("GWh")
         plt.legend(title=TRANSLATIONS["month"][lang], bbox_to_anchor=(1.05,1), loc='upper left')
+
+        # Bronvermelding linksbovenaan
+        plt.text(
+            0, 1.02,                                   # x=0 (links), y iets boven 1 (boven de plot)
+            f"{TRANSLATIONS['source'][lang]}: Elia",
+            transform=plt.gca().transAxes,             # gebruik relatieve coördinaten van de as (0-1)
+            ha="left",                                 # links uitlijnen
+            va="bottom",                               # van onderaf uitlijnen
+            fontsize=9,
+            color="gray"
+        )
+
         plt.tight_layout()
         plt.show()
 
@@ -185,6 +198,17 @@ def plot_wind_total(
         loc='upper left'
     )
 
+    # Bronvermelding linksbovenaan
+    ax.text(
+        0, 1.02,                                   # x=0 (links), y iets boven 1 (boven de plot)
+        f"{TRANSLATIONS['source'][lang]}: Elia",
+        transform=ax.transAxes,                    # gebruik relatieve coördinaten van de as (0-1)
+        ha="left",                                 # links uitlijnen
+        va="bottom",                               # van onderaf uitlijnen
+        fontsize=9,
+        color="gray"
+    )
+
     plt.tight_layout()
     plt.show()
 
@@ -195,7 +219,7 @@ def plot_wind_total(
 def plot_solar(
         lang: LangCode = "nl",
         short: bool = True,
-        layout: Literal["years", "months", "cumulative", "cumulative_zone", "cumulative_zone"] = "years"
+        layout: Literal["years", "months", "cumulative", "cumulative_zone"] = "years"
     ) -> None:
     """
     Visualiseert de maandelijkse zonne-energieproductie, met keuze tussen vier
@@ -328,6 +352,17 @@ def plot_solar(
         loc='upper left'
     )
 
+    # Bronvermelding linksbovenaan
+    ax.text(
+        0, 1.02,                                  # x=0 (links), y iets boven 1 (boven de plot)
+        f"{TRANSLATIONS['source'][lang]}: Elia",
+        transform=ax.transAxes,                   # gebruik relatieve coördinaten van de as (0-1)
+        ha="left",                                # links uitlijnen
+        va="bottom",                              # van onderaf uitlijnen
+        fontsize=9,
+        color="gray"
+    )
+
     plt.tight_layout()
     plt.show()
 
@@ -434,7 +469,6 @@ def plot_interactive(
             x=year_col,
             y="GWh",
             color=month_col,
-            title=title,
             labels={
                 "GWh": "GWh"
             }
@@ -451,7 +485,6 @@ def plot_interactive(
             y="GWh",
             color=year_col,
             barmode="group",
-            title=title,
             labels={
                 "GWh": "GWh"
             }
@@ -471,7 +504,6 @@ def plot_interactive(
             x=month_col,
             y="cumulative_GWh",
             color=year_col,
-            title=title_cumulative,
             labels={
                 "cumulative_GWh": "GWh"
             }
@@ -482,7 +514,27 @@ def plot_interactive(
     else:
         raise ValueError("layout must be 'years', 'months' or 'cumulative'")
 
+    # Bronvermelding linksboven
+    fig.add_annotation(
+        x=0,                                             # links van de plot
+        y=1.02,                                          # boven de plot
+        xref="paper",                                    # relatieve coördinaten (0-1)
+        yref="paper",
+        text=f"{TRANSLATIONS['source'][lang]}: Elia",
+        showarrow=False,                                 # geen pijl
+        xanchor="left",                                  # links uitlijnen
+        yanchor="bottom",                                # onderkant van tekst bij y=1
+        font=dict(size=12, color="gray")
+    )
+
     fig.update_layout(
+        title=dict(
+            text=title_cumulative if layout == "cumulative" else title,
+            x=0.5,
+            xanchor="center",
+            yanchor="top",
+            font=dict(size=18)
+        ),
         legend_title_text=legend_title,
         hovermode="closest"
     )
@@ -528,6 +580,18 @@ def plot_belpex_heatmap(lang: LangCode = "nl", short: bool = True) -> None:
     plt.title(TRANSLATIONS["titles"]["belpex"][lang])
     plt.xlabel(TRANSLATIONS["month"][lang])
     plt.ylabel(TRANSLATIONS["year"][lang])
+
+    # Bronvermelding linksbovenaan
+    plt.text(
+        0, 1.02,                                       # x=0 (links), y iets boven 1 (boven de plot)
+        f"{TRANSLATIONS['source'][lang]}: Elexys",
+        transform=plt.gca().transAxes,                 # gebruik relatieve coördinaten van de as (0-1)
+        ha="left",                                     # links uitlijnen
+        va="bottom",                                   # van onderaf uitlijnen
+        fontsize=9,
+        color="gray"
+    )
+
     plt.tight_layout()
     plt.show()
 
@@ -602,11 +666,22 @@ def plot_belpex_hourly(
 
     plt.legend(
         title=pivot_belpex_hourly.columns.name,     # bv. "Weekdag" of "Maand"
-        bbox_to_anchor=(1.05, 1),    # zet legende rechts van de plot
-        loc='upper left'              # ankerpunt van legende
+        bbox_to_anchor=(1.05, 1),                   # zet legende rechts van de plot
+        loc='upper left'                            # ankerpunt van legende
     )
     plt.tight_layout()  # zorgt dat alles netjes binnen de figuur past
     plt.grid(True, linestyle='--', alpha=0.5)
+
+    # Bronvermelding linksbovenaan
+    plt.text(
+        0, 1.02,                                    # x=0 (links), y iets boven 1 (boven de plot)
+        f"{TRANSLATIONS['source'][lang]}: Elexys",
+        transform=plt.gca().transAxes,              # gebruik relatieve coördinaten van de as (0-1)
+        ha="left",                                  # links uitlijnen
+        va="bottom",                                # van onderaf uitlijnen
+        fontsize=9,
+        color="gray"
+    )
 
     plt.tight_layout()
     plt.show()
@@ -655,6 +730,18 @@ def plot_negative_price_counts_cumulative(lang: LangCode = "nl", short: bool = T
     plt.ylabel(TRANSLATIONS["labels"]["negative_price_cumulative"][lang])
     plt.legend(title=TRANSLATIONS["year"][lang], bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.grid(True, linestyle='--', alpha=0.5)
+
+    # Bronvermelding linksbovenaan
+    plt.text(
+        0, 1.02,                                     # x=0 (links), y iets boven 1 (boven de plot)
+        f"{TRANSLATIONS['source'][lang]}: Elexys",
+        transform=plt.gca().transAxes,               # gebruik relatieve coördinaten van de as (0-1)
+        ha="left",                                   # links uitlijnen
+        va="bottom",                                 # van onderaf uitlijnen
+        fontsize=9,
+        color="gray"
+    )
+
     plt.tight_layout()
     plt.show()
 
@@ -694,6 +781,18 @@ def plot_negative_price_counts_bubble(lang: str = "nl", short: bool = True):
     plt.ylabel(TRANSLATIONS["year"][lang])
     plt.legend(title=TRANSLATIONS["year"][lang], bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.grid(True, linestyle='--', alpha=0.3)
+
+    # Bronvermelding linksbovenaan
+    plt.text(
+        0, 1.02,                                    # x=0 (links), y iets boven 1 (boven de plot)
+        f"{TRANSLATIONS['source'][lang]}: Elexys",
+        transform=plt.gca().transAxes,              # gebruik relatieve coördinaten van de as (0-1)
+        ha="left",                                  # links uitlijnen
+        va="bottom",                                # van onderaf uitlijnen
+        fontsize=9,
+        color="gray"
+    )
+
     plt.tight_layout()
     plt.show()
 
@@ -769,6 +868,17 @@ def plot_belpex_price_distribution(lang: LangCode = "nl") -> None:
     # zet grid achter de boxplot
     ax.set_axisbelow(True)
     ax.grid(axis="y", linestyle=":", alpha=0.7)
+
+    # Bronvermelding linksbovenaan
+    ax.text(
+        0, 1.02,                                     # x=0 (links), y iets boven 1 (boven de plot)
+        f"{TRANSLATIONS['source'][lang]}: Elexys",
+        transform=ax.transAxes,                      # gebruik relatieve coördinaten van de as (0-1)
+        ha="left",                                   # links uitlijnen
+        va="bottom",                                 # van onderaf uitlijnen
+        fontsize=14,
+        color="gray"
+    )
 
     plt.tight_layout()
     plt.show()
@@ -859,7 +969,7 @@ def plot_combined(lang: LangCode = "nl", short: bool = True) -> None:
     if peak1_mask.any():
         x_peak1 = df_compare.loc[peak1_mask, "x_index"].iloc[0]
         ax2.annotate(
-            "Marktschok na invasie Oekraïne",
+            TRANSLATIONS["labels"]["peak1"][lang],
             xy=(x_peak1, belpex_vals[x_peak1]),
             xytext=(x_peak1 - 16, belpex_vals[x_peak1] * 1.3),
             arrowprops=dict(
@@ -880,7 +990,7 @@ def plot_combined(lang: LangCode = "nl", short: bool = True) -> None:
     if peak2_mask.any():
         x_peak2 = df_compare.loc[peak2_mask, "x_index"].iloc[0]
         ax2.annotate(
-            "Gascrisis / Nord Stream",
+            TRANSLATIONS["labels"]["peak2"][lang],
             xy=(x_peak2, belpex_vals[x_peak2]),
             xytext=(x_peak2 + 3, belpex_vals[x_peak2] * 1.05),
             arrowprops=dict(
@@ -927,5 +1037,17 @@ def plot_combined(lang: LangCode = "nl", short: bool = True) -> None:
 
     # Titel en layout
     plt.title(TRANSLATIONS["titles"]["combined"][lang])
+
+    # Bronvermelding linksbovenaan
+    ax1.text(
+        0, 1.02,                                            # x=0 (links), y iets boven 1 (boven de plot)
+        f"{TRANSLATIONS['source'][lang]}: Elia & Elexys",
+        transform=ax1.transAxes,                            # gebruik relatieve coördinaten van de as (0-1)
+        ha="left",                                          # links uitlijnen
+        va="bottom",                                        # van onderaf uitlijnen
+        fontsize=9,
+        color="gray"
+    )
+
     plt.tight_layout()
     plt.show()
