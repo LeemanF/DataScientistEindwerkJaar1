@@ -34,3 +34,4 @@ openpyxl>=3.1.0            # Vereist voor het inlezen van .xlsx-bestanden via pa
 matplotlib>=3.5.0          # Basisgrafieken: line, bar, stacked bar, scatter, etc.
 seaborn>=0.11.0            # Uitgebreidere statistische visualisaties en heatmaps
 plotly>=5.0                # Interactieve grafieken
+nbformat>=4.2.0            # Vereist door Plotly voor Jupyter/Notebook-ondersteuning
