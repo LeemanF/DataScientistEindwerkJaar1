@@ -833,13 +833,13 @@ def plot_combined(lang: LangCode = "nl", short: bool = True) -> None:
     ax1.bar(
         x_index,
         solar_vals,
-        bottom=wind_vals,
+        bottom=wind_vals,     # bovenop de windenergie
         label=TRANSLATIONS["labels"]["solar_GWh"][lang],
         color="gold",
     )
     ax1.set_ylabel("GWh")
-    ax1.set_ylim(0, max_prod)
-    ax1.legend(loc="upper left")
+    ax1.set_ylim(0, max_prod *1.1)
+    ax1.legend(loc="upper left", frameon=False)
 
     # Lijngrafiek: Belpex-prijs
     ax2 = ax1.twinx()
@@ -851,8 +851,50 @@ def plot_combined(lang: LangCode = "nl", short: bool = True) -> None:
         label=TRANSLATIONS["labels"]["belpex_EUR_per_MWh"][lang],
     )
     ax2.set_ylabel(TRANSLATIONS["labels"]["belpex_EUR_per_MWh"][lang])
-    ax2.set_ylim(0, max_price)
-    ax2.legend(loc="upper right")
+    ax2.set_ylim(0, max_price *1.1)
+    ax2.legend(loc="upper right", frameon=False)
+
+    # Piek 1: maart 2022
+    peak1_mask = (df_compare["year"] == 2022) & (df_compare["month"] == 3)
+    if peak1_mask.any():
+        x_peak1 = df_compare.loc[peak1_mask, "x_index"].iloc[0]
+        ax2.annotate(
+            "Marktschok na invasie Oekraïne",
+            xy=(x_peak1, belpex_vals[x_peak1]),
+            xytext=(x_peak1 - 16, belpex_vals[x_peak1] * 1.3),
+            arrowprops=dict(
+                arrowstyle="->", 
+                relpos=(1, 0)       # pijl rechtsonder uit de box
+            ),
+            bbox=dict(
+                boxstyle="round,pad=0.3",
+                facecolor="white",
+                edgecolor="black",
+                alpha=0.7
+            ),
+            fontsize=9,
+        )
+
+    # Piek 2: augustus 2022
+    peak2_mask = (df_compare["year"] == 2022) & (df_compare["month"] == 8)
+    if peak2_mask.any():
+        x_peak2 = df_compare.loc[peak2_mask, "x_index"].iloc[0]
+        ax2.annotate(
+            "Gascrisis / Nord Stream",
+            xy=(x_peak2, belpex_vals[x_peak2]),
+            xytext=(x_peak2 + 3, belpex_vals[x_peak2] * 1.05),
+            arrowprops=dict(
+                arrowstyle="->", 
+                relpos=(0, 0)       # pijl links-onder uit de box
+            ),
+            bbox=dict(
+                boxstyle="round,pad=0.3",
+                facecolor="white",
+                edgecolor="black",
+                alpha=0.7
+            ),
+            fontsize=9,
+        )
 
     # X-as opmaak: maandnamen
     ax1.set_xticks(x_index)
@@ -882,11 +924,6 @@ def plot_combined(lang: LangCode = "nl", short: bool = True) -> None:
         if y != years[-1]:
             last_x = df_compare.loc[year_mask, 'x_index'].max()
             ax1.axvline(x=last_x + 0.5, color='gray', linestyle='--', alpha=0.5)
-
-    # Horizontale grid op ax1 (productie)
-    #ax1.grid(axis='y', linestyle='--', alpha=0.5)
-    # Horizontale grid  ax2 (Belpex-lijn)
-    #ax2.grid(axis='y', linestyle='--', alpha=0.3)
 
     # Titel en layout
     plt.title(TRANSLATIONS["titles"]["combined"][lang])
