@@ -3,7 +3,7 @@
 
 [https://github.com/LeemanF/DataScientistEindwerkJaar1](https://github.com/LeemanF/DataScientistEindwerkJaar1)
 
-Laatste update 11/01/2025
+Laatste update 22/01/2025
 
 Voor het eerste jaar van de opleiding Data-Scientist (Python data developer) werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
@@ -49,6 +49,17 @@ Doordat de Belpex-spotmarktprijzen voortaan per kwartier zijn in plaats van per 
 Via de link [https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be](https://www.elexys.be/insights/quarter-hourly-belpex-day-ahead-spot-be) zijn de kwartierprijzen beschikbaar. 
 De code werd aangepast zodat de nieuwe data correct gedownload wordt en ook omgezet wordt naar het oude formaat. 
 Zo blijft de consistentie met de oude data behouden.
+
+---
+
+## 🔧 Installatie
+
+1. Zorg voor een recente Python-omgeving (3.10+ aanbevolen).
+2. Installeer vereiste modules (bij voorkeur manueel, maar dit verloopt ook automatisch via het importeren van de scripts): zie [requirements.txt](requirements.txt)
+```bash
+pip install -r requirements.txt
+```
+3. Zorg dat ChromeDriver of EdgeDriver beschikbaar is (wordt automatisch beheerd via `webdriver_manager`, geen handmatige installatie nodig).
 
 ---
 
@@ -141,7 +152,9 @@ Hoewel de logging-module de professionele standaard is, biedt DualLogger in het 
 ### Laden en visualiseren van de data (data_extraction.py en visualisation_tools.py)
 
 De module [`data_extraction.py`](src/data_extraction.py) bevat functies om gegevens uit de SQLite-database op te halen.  
-Ze levert zowel **ruwe dataframes** (onbewerkte records) als **gepivotteerde tabellen** die klaar zijn voor analyse of visualisatie. Deze tabellen vormen de basis voor alle grafieken in het project.
+Ze levert zowel **ruwe dataframes** (onbewerkte records) als **gepivotteerde tabellen** die klaar zijn voor analyse of visualisatie. Deze tabellen vormen de basis voor de meeste grafieken in het project.
+
+Onderliggend maken deze functies gebruik van een generieke database-helper `execute_query()`, die instaat voor het uitvoeren van SQL-queries en het teruggeven van de resultaten als Pandas DataFrame. Hierdoor blijft de database-toegang centraal georganiseerd en losgekoppeld van de domeinspecifieke logica.
 
 De visualisaties worden aangeroepen via de module [`visualisation_tools.py`](src/visualisation_tools.py).  
 Deze module bevat functies voor onder andere:
@@ -179,17 +192,6 @@ Hierdoor zijn titels, labels, foutmeldingen en assen gelokaliseerd in alle visua
 ## 📊 Dashboard
 
 De notebook [`main.ipynb`](main.ipynb) fungeert als een interactief overzicht en demonstratie van alle functies voor het ophalen, verwerken en visualiseren van energie- en marktdata. Ze bevat toegepaste voorbeelden op reële datasets en laat gebruikers toe de mogelijkheden van het project stap voor stap te verkennen. Deze notebook is bedoeld als het primaire instappunt voor gebruikers zonder programmeer- of technische achtergrond, en kan tegelijk dienen als een lichtgewicht analytisch dashboard voor snelle exploratie van de data.
-
----
-
-## 🔧 Installatie
-
-1. Zorg voor een recente Python-omgeving (3.10+ aanbevolen).
-2. Installeer vereiste modules (bij voorkeur manueel, maar dit verloopt ook automatisch via het importeren van de scripts): zie [requirements.txt](requirements.txt)
-```bash
-pip install -r requirements.txt
-```
-3. Zorg dat ChromeDriver of EdgeDriver beschikbaar is (wordt automatisch beheerd via `webdriver_manager`, geen handmatige installatie nodig).
 
 ---
 
@@ -239,7 +241,9 @@ Project/
 ├── Data/                               # Bevat alle geïmporteerde data
 │   ├── Belpex/                         # CSV-bestanden met Belpex-marktprijzen
 │   │   ├── Belpex_202001.csv
-│   │   ├── Belpex_202002.csv
+│   │   ├── ...
+│   │   ├── Belpex_202508.csv
+│   │   ├── Belpex_202508.xlsx          # Nieuwe layout downloads Elexys
 │   │   └── ...
 │   ├── SolarForecast/                  # Zonneproductievoorspellingen en - metingen (JSON & ZIP)
 │   │   ├── SolarForecast_2020.zip
@@ -271,6 +275,7 @@ Project/
 │       ├── Banner.png
 │       ├── plot_belpex_hourly.png
 │       ├── plot_combined.png
+│       ├── plot_interactive.png
 │       ├── plot_solar.png
 │       └── Taakplanner.png 
 ├── Log/                                # Logbestanden gegenereerd door auto_update.py
