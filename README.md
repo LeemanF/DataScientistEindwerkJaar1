@@ -3,7 +3,7 @@
 
 [https://github.com/LeemanF/DataScientistEindwerkJaar1](https://github.com/LeemanF/DataScientistEindwerkJaar1)
 
-Laatste update 22/01/2025
+Laatste update README en code 22/01/2026.
 
 Voor het eerste jaar van de opleiding Data-Scientist (Python data developer) werd gevraagd om een eindproef in Python te maken met de focus op het ETL-proces:
 - **Extract**: het binnenhalen van de data  
