@@ -154,7 +154,12 @@ TRANSLATIONS = {
                 "nl": "Gascrisis / Nord Stream",
                 "fr": "Crise du gaz / Nord Stream",
                 "en": "Gas crisis / Nord Stream"
-            }
+            },
+            "vs_iran": {
+                "nl": "Escalatie VS - Iran",
+                "fr": "Escalade États-Unis - Iran",
+                "en": "US-Iran Escalation"
+            },
         },
         "errors": {
             "no_data_to_plot": {

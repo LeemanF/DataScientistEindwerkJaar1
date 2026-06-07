@@ -1006,6 +1006,28 @@ def plot_combined(lang: LangCode = "nl", short: bool = True) -> None:
             fontsize=9,
         )
 
+    # Escalatie VS/Iran: februari/maart 2026
+    vs_iran_mask = (df_compare["year"] == 2026) & (df_compare["month"] == 3)
+    if vs_iran_mask.any():
+        x_vs_iran= df_compare.loc[vs_iran_mask, "x_index"].iloc[0]
+        ax2.annotate(
+            TRANSLATIONS["labels"]["vs_iran"][lang],
+            xy=(x_vs_iran, belpex_vals[x_vs_iran]),
+            xytext=(x_vs_iran - 9, belpex_vals[x_vs_iran] * 0.3),
+            arrowprops=dict(
+                arrowstyle="->", 
+                relpos=(1, 1)       # pijl rechtsboven uit de box
+            ),
+            bbox=dict(
+                boxstyle="round,pad=0.3",
+                facecolor="white",
+                edgecolor="black",
+                alpha=0.7
+            ),
+            fontsize=9,
+        )
+
+
     # X-as opmaak: maandnamen
     ax1.set_xticks(x_index)
     ax1.set_xticklabels(df_compare['month_name'], rotation=90)
